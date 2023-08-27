@@ -41,12 +41,19 @@ define(['./Bio.Library.Helper', 'N'],
                         join: "item",
                         label: "DESCRIPCIÓN"
                     }),
-                    search.createColumn({ name: "built", label: "CANTIDAD" }),
+                    search.createColumn({ name: "built", label: "CANTIDAD CONSTRUIDO / REAL" }),
                     search.createColumn({
                         name: "custitem3",
                         join: "item",
                         label: "LINEA"
-                    })
+                    }),
+                    search.createColumn({ name: "quantity", label: "CANTIDAD TEORICA" }),
+                    search.createColumn({
+                        name: "custitem5",
+                        join: "item",
+                        label: "VOLUMEN"
+                    }),
+                    search.createColumn({ name: "statusref", label: "Estado" })
                 ],
                 filters: [
                     ["mainline", "is", "T"],
@@ -55,7 +62,7 @@ define(['./Bio.Library.Helper', 'N'],
                     "AND",
                     ["trandate", "within", dateFrom, dateTo],
                     "AND",
-                    ["status", "anyof", "WorkOrd:H"],
+                    ["status", "anyof", "WorkOrd:H", "WorkOrd:D"],
                     "AND",
                     ["item.custitem3", "anyof", "2", "6", "1", "3", "10", "11", "9", "48", "4"],
                     "AND",
@@ -82,9 +89,12 @@ define(['./Bio.Library.Helper', 'N'],
                 let centro_costo = node.getText(columns[6]); // CENTRO DE COSTO
                 let codigo_oracle = node.getText(columns[7]); // CÓDIGO ORACLE
                 let descripcion = node.getValue(columns[8]); // DESCRIPCIÓN
-                let cantidad_construido = node.getValue(columns[9]); // CANTIDAD
+                let cantidad_construido = node.getValue(columns[9]); // CANTIDAD CONSTRUIDO / REAL
                 let linea = node.getValue(columns[10]); // LINEA
                 let linea_nombre = node.getText(columns[10]); // LINEA
+                let cantidad_teorica = node.getValue(columns[11]); // CANTIDAD TEORICA
+                let volumen = node.getValue(columns[12]); // VOLUMEN
+                let estado = node.getText(columns[13]); // ESTADO
 
                 // Insertar informacion en array
                 data.push({
@@ -101,6 +111,9 @@ define(['./Bio.Library.Helper', 'N'],
                     cantidad_construido: cantidad_construido,
                     linea: linea,
                     linea_nombre: linea_nombre,
+                    cantidad_teorica: cantidad_teorica,
+                    volumen: volumen,
+                    estado: estado,
                 });
                 return true; // La funcion each debes indicarle si quieres que siga iterando o no
             })
@@ -265,6 +278,11 @@ define(['./Bio.Library.Helper', 'N'],
                 type: 'workorder',
                 columns: [
                     search.createColumn({
+                        name: "internalid",
+                        summary: "GROUP",
+                        label: "ID Interno"
+                    }),
+                    search.createColumn({
                         name: "tranid",
                         summary: "GROUP",
                         sort: search.Sort.DESC,
@@ -288,6 +306,12 @@ define(['./Bio.Library.Helper', 'N'],
                         label: "Related Records : TYPE"
                     }),
                     search.createColumn({
+                        name: "internalid",
+                        join: "applyingTransaction",
+                        summary: "GROUP",
+                        label: "Related Records : INTERNAL ID"
+                    }),
+                    search.createColumn({
                         name: "tranid",
                         join: "applyingTransaction",
                         summary: "GROUP",
@@ -302,7 +326,7 @@ define(['./Bio.Library.Helper', 'N'],
                     "AND",
                     ["trandate", "within", dateFrom, dateTo],
                     "AND",
-                    ["status", "anyof", "WorkOrd:H"],
+                    ["status", "anyof", "WorkOrd:H", "WorkOrd:D"],
                     "AND",
                     array_where_subsidiary,
                     "AND",
@@ -319,18 +343,22 @@ define(['./Bio.Library.Helper', 'N'],
             searchContext.run().each(node => {
                 // Obtener informacion
                 let columns = node.columns;
-                let orden_trabajo = node.getValue(columns[0]); // Nro OT
-                // let lote = node.getValue(columns[1]); // Lote
-                let related_record_date = node.getValue(columns[2]); // Related Records : DATE
-                let related_record_type = node.getValue(columns[3]); // Related Records : TYPE
-                let related_record_number = node.getValue(columns[4]); // Related Records : NUMBER
+                let orden_trabajo_id_interno = node.getValue(columns[0]); // ID Interno
+                let orden_trabajo_numero = node.getValue(columns[1]); // Nro OT
+                // let lote = node.getValue(columns[2]); // Lote
+                let related_record_date = node.getValue(columns[3]); // Related Records : DATE
+                let related_record_type = node.getValue(columns[4]); // Related Records : TYPE
+                let related_record_internal_id = node.getValue(columns[5]); // Related Records : INTERNAL ID
+                let related_record_number = node.getValue(columns[6]); // Related Records : NUMBER
 
                 // Insertar informacion en array
                 data.push({
-                    orden_trabajo: orden_trabajo,
+                    orden_trabajo_id_interno: orden_trabajo_id_interno,
+                    orden_trabajo_numero: orden_trabajo_numero,
                     // lote: lote,
                     related_record_date: related_record_date,
                     related_record_type: related_record_type,
+                    related_record_internal_id: related_record_internal_id,
                     related_record_number: related_record_number
                 });
                 return true; // La funcion each debes indicarle si quieres que siga iterando o no
@@ -349,13 +377,14 @@ define(['./Bio.Library.Helper', 'N'],
         function getDataOT_EmisionesOrdenesProduccion(subsidiary, dataOT_RegistrosRelacionados) {
 
             // Obtener los ID de registros relacionados
-            let array_registros_relacionados = [];
-            dataOT_RegistrosRelacionados.forEach(element => {
-                array_registros_relacionados.push(parseInt(element.related_record_number))
-            });
-            let min_reg_rel = Math.min(...array_registros_relacionados);
-            let max_reg_rel = Math.max(...array_registros_relacionados);
-            // objHelper.error_log('getDataOT_EmisionesOrdenesProduccion', array_registros_relacionados);
+            let array_registros_relacionados_id_interno = ["internalid", "anyof", "@NONE@"];
+            if (dataOT_RegistrosRelacionados.length > 0) {
+                array_registros_relacionados_id_interno = ["internalid", "anyof"];
+                dataOT_RegistrosRelacionados.forEach(element => {
+                    array_registros_relacionados_id_interno.push(element.related_record_internal_id)
+                });
+            }
+            // objHelper.error_log('', array_registros_relacionados_id_interno);
 
             // Declarar variables
             let result = {};
@@ -372,14 +401,20 @@ define(['./Bio.Library.Helper', 'N'],
                 type: 'workorderissue',
                 columns: [
                     search.createColumn({
-                        name: "tranid",
+                        name: "internalid",
                         join: "createdFrom",
-                        label: "Work Order"
+                        label: "Created From : Work Order - Internal ID"
                     }),
                     search.createColumn({
                         name: "tranid",
+                        join: "createdFrom",
+                        label: "Created From : Work Order - Number"
+                    }),
+                    search.createColumn({ name: "internalid", label: "Work Order Issue - Internal ID" }),
+                    search.createColumn({
+                        name: "tranid",
                         sort: search.Sort.DESC,
-                        label: "Work Order Issue"
+                        label: "Work Order Issue - Number"
                     }),
                     search.createColumn({ name: "item", label: "Item" }),
                     search.createColumn({
@@ -399,7 +434,7 @@ define(['./Bio.Library.Helper', 'N'],
                     "AND",
                     array_where_subsidiary,
                     "AND",
-                    ["number", "between", min_reg_rel, max_reg_rel],
+                    array_registros_relacionados_id_interno,
                     "AND",
                     ["debitamount", "isnotempty", ""]
                 ],
@@ -418,21 +453,25 @@ define(['./Bio.Library.Helper', 'N'],
                 myPage.data.forEach((row) => {
                     // Obtener informacion
                     let { columns } = row;
-                    let work_order = row.getValue(columns[0]);
-                    let work_order_issue = row.getValue(columns[1]);
-                    let item = row.getValue(columns[2]);
-                    let item_name = row.getText(columns[2]);
-                    let line = row.getValue(columns[3]);
-                    let line_name = row.getText(columns[3]);
-                    let quantity = row.getValue(columns[4]);
-                    let account = row.getValue(columns[5]);
-                    let account_name = row.getText(columns[5]);
-                    let debitamount = row.getValue(columns[6]);
+                    let work_order_internal_id = row.getValue(columns[0]);
+                    let work_order_number = row.getValue(columns[1]);
+                    let work_order_issue_internal_id = row.getValue(columns[2]);
+                    let work_order_issue_number = row.getValue(columns[3]);
+                    let item = row.getValue(columns[4]);
+                    let item_name = row.getText(columns[4]);
+                    let line = row.getValue(columns[5]);
+                    let line_name = row.getText(columns[5]);
+                    let quantity = row.getValue(columns[6]);
+                    let account = row.getValue(columns[7]);
+                    let account_name = row.getText(columns[7]);
+                    let debitamount = row.getValue(columns[8]);
 
                     // Insertar informacion en array
                     data.push({
-                        orden_trabajo: work_order,
-                        emision_orden_produccion: work_order_issue,
+                        orden_trabajo_id_interno: work_order_internal_id,
+                        orden_trabajo_numero: work_order_number,
+                        emision_orden_produccion_id_interno: work_order_issue_internal_id,
+                        emision_orden_produccion_numero: work_order_issue_number,
                         codigo: item,
                         codigo_nombre: item_name,
                         linea: line,
@@ -476,7 +515,7 @@ define(['./Bio.Library.Helper', 'N'],
                     search.createColumn({ name: "custrecord201", label: "Nombre de la operación" }),
                     search.createColumn({
                         name: "custrecord150",
-                        sort: search.Sort.ASC,
+                        sort: search.Sort.DESC,
                         label: "Orden de trabajo"
                     }),
                     search.createColumn({ name: "custrecord186", label: "Fecha" }),
@@ -491,6 +530,11 @@ define(['./Bio.Library.Helper', 'N'],
                         name: "formulanumeric",
                         formula: "ROUND({custrecord194}*{custrecord187},2)",
                         label: "Costo Total"
+                    }),
+                    search.createColumn({
+                        name: "formulanumeric",
+                        formula: "{custrecord194}*{custrecord187}",
+                        label: "Costo Total (Sin redondear)"
                     })
                 ],
                 filters: [
@@ -531,7 +575,7 @@ define(['./Bio.Library.Helper', 'N'],
                     let servicios = row.getValue(columns[8]);
                     let duracion_horas = row.getValue(columns[9]);
                     let costo_hora = row.getValue(columns[10]);
-                    let costo_total = row.getValue(columns[11]);
+                    let costo_total = row.getValue(columns[12]);
 
                     // Insertar informacion en array
                     data.push({

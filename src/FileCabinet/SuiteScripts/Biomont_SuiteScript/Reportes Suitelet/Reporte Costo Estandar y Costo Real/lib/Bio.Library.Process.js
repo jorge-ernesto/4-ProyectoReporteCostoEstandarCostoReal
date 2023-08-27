@@ -55,11 +55,11 @@ define(['./Bio.Library.Helper', 'N'],
                 });
 
                 // RECORRER LOS REGISTROS RELACIONADOS (EMISIONES DE ORDENES DE PRODUCCION) DE LAS ORDENES DE TRABAJO PARA AGREGAR -- LA INFORMACION DE IMPACTO EN LM
-                dataOT_RegistrosRelacionados.forEach((value_ot_rl, key_ot_rl) => {
-                    dataOT_EmisionesOrdenesProduccion.forEach((value_ot_emi, key_ot_emi) => {
-                        if (value_ot_rl.related_record_number == value_ot_emi.emision_orden_produccion) {
-                            dataOT_RegistrosRelacionados[key_ot_rl]['impacto_en_lm'] = dataOT_RegistrosRelacionados[key_ot_rl]['impacto_en_lm'] || [];
-                            dataOT_RegistrosRelacionados[key_ot_rl]['impacto_en_lm'].push(value_ot_emi)
+                dataOT_RegistrosRelacionados.forEach((value_regrel, key_regrel) => {
+                    dataOT_EmisionesOrdenesProduccion.forEach((value_emi, key_emi) => {
+                        if (value_regrel.related_record_number == value_emi.emision_orden_produccion_numero) {
+                            dataOT_RegistrosRelacionados[key_regrel]['impacto_en_lm'] = dataOT_RegistrosRelacionados[key_regrel]['impacto_en_lm'] || [];
+                            dataOT_RegistrosRelacionados[key_regrel]['impacto_en_lm'].push(value_emi)
                         }
                     });
                 });
@@ -67,7 +67,7 @@ define(['./Bio.Library.Helper', 'N'],
                 // RECORRER ORDENES DE TRABAJO PARA AGREGAR -- REGISTROS RELACIONADOS (EMISIONES DE ORDENES DE PRODUCCION)
                 dataOT.forEach((value_ot, key_ot) => {
                     dataOT_RegistrosRelacionados.forEach((value_regrel, key_regrel) => {
-                        if (value_ot.orden_trabajo == value_regrel.orden_trabajo) {
+                        if (value_ot.orden_trabajo == value_regrel.orden_trabajo_numero) {
                             dataOT[key_ot]['registros_relacionados'] = dataOT[key_ot]['registros_relacionados'] || [];
                             dataOT[key_ot]['registros_relacionados'].push(value_regrel)
                         }
@@ -80,10 +80,10 @@ define(['./Bio.Library.Helper', 'N'],
                     if (value_ot.tipo_orden_trabajo == '1' || value_ot.tipo_orden_trabajo_nombre == 'FABRICACIÓN') {
                         total_mp = 0;
 
-                        let registros_relacionados = value_ot.registros_relacionados;
+                        let registros_relacionados = value_ot.registros_relacionados || [];
                         registros_relacionados.forEach((value_regrel, key_regrel) => {
 
-                            let impacto_en_lm = value_regrel.impacto_en_lm;
+                            let impacto_en_lm = value_regrel.impacto_en_lm || [];
                             impacto_en_lm.forEach((value_lm, key_lm) => {
 
                                 total_mp += parseFloat(value_lm.importe_debito)
@@ -92,12 +92,8 @@ define(['./Bio.Library.Helper', 'N'],
                     }
 
                     // TOTAL SOLES MP (MATERIA PRIMA)
-                    // CANTIDAD CONSTRUIDO MP (MATERIA PRIMA)
-                    // COSTO REAL MP (MATERIA PRIMA)
                     if (value_ot.tipo_orden_trabajo == '1' || value_ot.tipo_orden_trabajo_nombre == 'FABRICACIÓN') {
                         dataOT[key_ot]['total_mp'] = parseFloat(total_mp)
-                        dataOT[key_ot]['cantidad_construido_mp'] = parseFloat(value_ot.cantidad_construido)
-                        dataOT[key_ot]['costo_real_mp'] = parseFloat(total_mp) / parseFloat(value_ot.cantidad_construido)
                     }
                 });
 
@@ -110,49 +106,70 @@ define(['./Bio.Library.Helper', 'N'],
                             if (value_ot.lote == value_ot_mp.lote && (value_ot_mp.tipo_orden_trabajo == '1' || value_ot_mp.tipo_orden_trabajo_nombre == 'FABRICACIÓN')) {
 
                                 // TOTAL SOLES MP (MATERIA PRIMA)
-                                // CANTIDAD CONSTRUIDO MP (MATERIA PRIMA)
-                                // COSTO REAL MP (MATERIA PRIMA)
                                 dataOT[key_ot]['total_mp'] = parseFloat(value_ot_mp.total_mp);
-                                dataOT[key_ot]['cantidad_construido_mp'] = parseFloat(value_ot_mp.cantidad_construido_mp);
-                                dataOT[key_ot]['costo_real_mp'] = parseFloat(value_ot_mp.costo_real_mp);
                             }
                         });
                     }
                 });
 
                 // RECORRER ORDENES DE TRABAJO (TIPO DE ORDEN DE TRABAJO: ENVASADO Y EMPACADO) PARA OBTENER:
+                dataOT.forEach((value_ot, key_ot) => {
+                    if (value_ot.tipo_orden_trabajo == '3' || value_ot.tipo_orden_trabajo_nombre == 'ENVASADO Y EMPACADO') {
+
+                        // TOTAL USADO EN ORDEN
+                        dataOT[key_ot]['total_usado_en_orden'] = parseFloat(value_ot.cantidad_teorica) * parseFloat(value_ot.volumen);
+                    }
+                });
+
+                // RECORRER ORDENES DE TRABAJO (TIPO DE ORDEN DE TRABAJO: ENVASADO Y EMPACADO) PARA OBTENER:
+                let dataOT_MVME = dataOT;
+                let total_usado_en_ordenes = 0;
+                dataOT.forEach((value_ot, key_ot) => {
+                    if (value_ot.tipo_orden_trabajo == '3' || value_ot.tipo_orden_trabajo_nombre == 'ENVASADO Y EMPACADO') {
+                        total_usado_en_ordenes = 0;
+
+                        dataOT_MVME.forEach((value_ot_mvme, key_ot_mvme) => {
+                            if (value_ot.lote == value_ot_mvme.lote && (value_ot_mvme.tipo_orden_trabajo == '3' || value_ot_mvme.tipo_orden_trabajo_nombre == 'ENVASADO Y EMPACADO')) {
+
+                                total_usado_en_ordenes += parseFloat(value_ot_mvme.total_usado_en_orden);
+                            }
+                        });
+                    }
+
+                    // TOTAL USADO EN ORDENES
+                    if (value_ot.tipo_orden_trabajo == '3' || value_ot.tipo_orden_trabajo_nombre == 'ENVASADO Y EMPACADO') {
+                        dataOT[key_ot]['total_usado_en_ordenes'] = parseFloat(total_usado_en_ordenes);
+                    }
+                });
+
+                // RECORRER ORDENES DE TRABAJO (TIPO DE ORDEN DE TRABAJO: ENVASADO Y EMPACADO) PARA OBTENER:
                 let total_mv_me;
-                let cantidad_bulk_utilizada;
                 dataOT.forEach((value_ot, key_ot) => {
                     if (value_ot.tipo_orden_trabajo == '3' || value_ot.tipo_orden_trabajo_nombre == 'ENVASADO Y EMPACADO') {
                         total_mv_me = 0;
-                        cantidad_bulk_utilizada = 0;
 
-                        let registros_relacionados = value_ot.registros_relacionados;
+                        let registros_relacionados = value_ot.registros_relacionados || [];
                         registros_relacionados.forEach((value_regrel, key_regrel) => {
 
-                            let impacto_en_lm = value_regrel.impacto_en_lm;
+                            let impacto_en_lm = value_regrel.impacto_en_lm || [];
                             impacto_en_lm.forEach((value_lm, key_lm) => {
 
                                 if (!(value_lm.linea == '6' || value_lm.linea_nombre == 'BULK Y PRODUCTOS INTERMEDIOS')) {
                                     total_mv_me += parseFloat(value_lm.importe_debito)
-                                }
-                                if (value_lm.linea == '6' || value_lm.linea_nombre == 'BULK Y PRODUCTOS INTERMEDIOS') {
-                                    cantidad_bulk_utilizada += parseFloat(value_lm.cantidad)
                                 }
                             });
                         });
                     }
 
                     // TOTAL SOLES MV ME (MATERIAL ENVASE Y MATERIAL EMPAQUE)
-                    // CANTIDAD DE BULK UTILIZADA
+                    // FACTOR
                     // TOTAL SOLES BULK UTILIZADA
                     // TOTAL MD (MATERIAL DIRECTO: MP + MV + ME)
                     // COSTO REAL MD (MATERIAL DIRECTO: MP + MV + ME)
                     if (value_ot.tipo_orden_trabajo == '3' || value_ot.tipo_orden_trabajo_nombre == 'ENVASADO Y EMPACADO') {
                         dataOT[key_ot]['total_mv_me'] = parseFloat(total_mv_me);
-                        dataOT[key_ot]['cantidad_bulk_utilizada'] = parseFloat(cantidad_bulk_utilizada);
-                        dataOT[key_ot]['total_bulk_utilizada'] = parseFloat(value_ot.costo_real_mp) * dataOT[key_ot]['cantidad_bulk_utilizada'];
+                        dataOT[key_ot]['factor'] = parseFloat(value_ot.total_usado_en_orden) / parseFloat(value_ot.total_usado_en_ordenes);
+                        dataOT[key_ot]['total_bulk_utilizada'] = parseFloat(value_ot.total_mp) * parseFloat(dataOT[key_ot]['factor']);
                         dataOT[key_ot]['total_md'] = dataOT[key_ot]['total_bulk_utilizada'] + dataOT[key_ot]['total_mv_me'];
                         dataOT[key_ot]['costo_real_md'] = dataOT[key_ot]['total_md'] / parseFloat(value_ot.cantidad_construido);
                     }
@@ -177,7 +194,7 @@ define(['./Bio.Library.Helper', 'N'],
                     if (value_ot.tipo_orden_trabajo == '1' || value_ot.tipo_orden_trabajo_nombre == 'FABRICACIÓN') {
                         total_mod_mp = 0;
 
-                        let datos_de_produccion = value_ot.datos_de_produccion;
+                        let datos_de_produccion = value_ot.datos_de_produccion || [];
                         datos_de_produccion.forEach((value_prod, key_prod) => {
 
                             total_mod_mp += parseFloat(value_prod.costo_total || 0)
@@ -185,10 +202,8 @@ define(['./Bio.Library.Helper', 'N'],
                     }
 
                     // TOTAL SOLES MOD MP (MATERIA PRIMA)
-                    // COSTO REAL MOD MP (MATERIA PRIMA)
                     if (value_ot.tipo_orden_trabajo == '1' || value_ot.tipo_orden_trabajo_nombre == 'FABRICACIÓN') {
                         dataOT[key_ot]['total_mod_mp'] = parseFloat(total_mod_mp)
-                        dataOT[key_ot]['costo_real_mod_mp'] = parseFloat(total_mod_mp) / parseFloat(value_ot.cantidad_construido)
                     }
                 });
 
@@ -201,9 +216,7 @@ define(['./Bio.Library.Helper', 'N'],
                             if (value_ot.lote == value_ot_mp.lote && (value_ot_mp.tipo_orden_trabajo == '1' || value_ot_mp.tipo_orden_trabajo_nombre == 'FABRICACIÓN')) {
 
                                 // TOTAL SOLES MOD MP (MATERIA PRIMA)
-                                // COSTO REAL MOD MP (MATERIA PRIMA)
                                 dataOT[key_ot]['total_mod_mp'] = parseFloat(value_ot_mp.total_mod_mp);
-                                dataOT[key_ot]['costo_real_mod_mp'] = parseFloat(value_ot_mp.costo_real_mod_mp);
                             }
                         });
                     }
@@ -217,7 +230,7 @@ define(['./Bio.Library.Helper', 'N'],
                         total_mod_mv_me = 0;
                         total_srv = 0;
 
-                        let datos_de_produccion = value_ot.datos_de_produccion;
+                        let datos_de_produccion = value_ot.datos_de_produccion || [];
                         datos_de_produccion.forEach((value_prod, key_prod) => {
 
                             if (!(value_prod.empleado == '22099' || value_prod.empleado_nombre == 'PERSONAL TERCERO')) {
@@ -231,16 +244,21 @@ define(['./Bio.Library.Helper', 'N'],
 
                     // TOTAL SOLES MV ME (MATERIAL ENVASE Y MATERIAL EMPAQUE)
                     // TOTAL SOLES SRV (SERVICIOS)
-                    // COSTO REAL MOD MV ME
-                    // COSTO REAL MOD (MP + MV + ME)
+                    // FACTOR
+                    // TOTAL SOLES BULK UTILIZADA
+                    // TOTAL MOD (MANO DE OBRA DIRECTA: MP + MV + ME)
+
+                    // COSTO REAL MOD (MANO DE OBRA DIRECTA: MP + MV + ME)
                     // COSTO REAL SRV
                     // COSTO REAL CIF
                     // COSTO REAL TOTAL
                     if (value_ot.tipo_orden_trabajo == '3' || value_ot.tipo_orden_trabajo_nombre == 'ENVASADO Y EMPACADO') {
                         dataOT[key_ot]['total_mod_mv_me'] = parseFloat(total_mod_mv_me);
                         dataOT[key_ot]['total_srv'] = parseFloat(total_srv);
-                        dataOT[key_ot]['costo_real_mod_mv_me'] = parseFloat(dataOT[key_ot]['total_mod_mv_me']) / parseFloat(value_ot.cantidad_construido);
-                        dataOT[key_ot]['costo_real_mod'] = parseFloat(value_ot.costo_real_mod_mp) + parseFloat(dataOT[key_ot]['costo_real_mod_mv_me']);
+                        dataOT[key_ot]['total_mod_bulk_utilizada'] = parseFloat(value_ot.total_mod_mp) * parseFloat(value_ot.factor);
+                        dataOT[key_ot]['total_mod'] = dataOT[key_ot]['total_mod_bulk_utilizada'] + dataOT[key_ot]['total_mod_mv_me'];
+
+                        dataOT[key_ot]['costo_real_mod'] = parseFloat(dataOT[key_ot]['total_mod']) / parseFloat(value_ot.cantidad_construido);
                         dataOT[key_ot]['costo_real_srv'] = parseFloat(dataOT[key_ot]['total_srv']) / parseFloat(value_ot.cantidad_construido);
                         dataOT[key_ot]['costo_real_cif'] = parseFloat(value_ot.costo_estandar_cif);
                         dataOT[key_ot]['costo_real_total'] = parseFloat(value_ot.costo_real_md || 0) + parseFloat(dataOT[key_ot]['costo_real_mod'] || 0) + parseFloat(dataOT[key_ot]['costo_real_srv'] || 0) + parseFloat(dataOT[key_ot]['costo_estandar_cif'] || 0);
@@ -271,6 +289,7 @@ define(['./Bio.Library.Helper', 'N'],
                 json.orden_trabajo = element.orden_trabajo;
                 json.lote = element.lote;
                 json.tipo_orden_trabajo_nombre = element.tipo_orden_trabajo_nombre;
+                json.estado = element.estado;
                 json.fec_ini_prod = element.fec_ini_prod;
                 json.fec_fin_prod = element.fec_fin_prod;
                 json.fec_cos_est = element.fec_cos_est;

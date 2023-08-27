@@ -86,6 +86,7 @@
             <Column ss:Width="90" />
             <Column ss:Width="90" />
             <Column ss:Width="90" />
+            <Column ss:Width="90" />
             <Row> <!-- Fila -->
                 <Cell ss:StyleID="t1">
                     <Data ss:Type="String">Reporte</Data>
@@ -121,6 +122,9 @@
                 </Cell>
                 <Cell ss:StyleID="header">
                     <Data ss:Type="String">TIPO DE ORDEN DE TRABAJO</Data>
+                </Cell>
+                <Cell ss:StyleID="header">
+                    <Data ss:Type="String">ESTADO</Data>
                 </Cell>
                 <Cell ss:StyleID="header">
                     <Data ss:Type="String">FECHA DE INICIO DE LA PRODUCCION</Data>
@@ -222,6 +226,9 @@
                 </Cell>
                 <Cell ss:StyleID="cell">
                     <Data ss:Type="String">${line.tipo_orden_trabajo_nombre}</Data>
+                </Cell>
+                <Cell ss:StyleID="cell">
+                    <Data ss:Type="String">${line.estado}</Data>
                 </Cell>
                 <Cell ss:StyleID="cell">
                     <Data ss:Type="String">${line.fec_ini_prod}</Data>

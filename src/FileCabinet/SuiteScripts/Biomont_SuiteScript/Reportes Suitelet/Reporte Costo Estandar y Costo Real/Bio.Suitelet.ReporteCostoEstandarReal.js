@@ -126,6 +126,7 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
             sublist.addField({ id: 'custpage_orden_trabajo', type: serverWidget.FieldType.TEXT, label: 'ORDEN DE TRABAJO' });
             sublist.addField({ id: 'custpage_lote', type: serverWidget.FieldType.TEXT, label: 'LOTE' });
             sublist.addField({ id: 'custpage_tipo_orden_trabajo', type: serverWidget.FieldType.TEXT, label: 'TIPO DE ORDEN DE TRABAJO' });
+            sublist.addField({ id: 'custpage_estado', type: serverWidget.FieldType.TEXT, label: 'ESTADO' });
             sublist.addField({ id: 'custpage_fec_ini_prod', type: serverWidget.FieldType.TEXT, label: 'FECHA DE INICIO DE LA PRODUCCIÓN' });
             sublist.addField({ id: 'custpage_fec_fin_prod', type: serverWidget.FieldType.TEXT, label: 'FECHA DE FINALIZACIÓN DE PRODUCCION' });
             sublist.addField({ id: 'custpage_fec_cos_est', type: serverWidget.FieldType.TEXT, label: 'FECHA DE COSTO ESTANDAR' });
@@ -170,6 +171,9 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
                 }
                 if (element.tipo_orden_trabajo) {
                     sublist.setSublistValue({ id: 'custpage_tipo_orden_trabajo', line: i, value: element.tipo_orden_trabajo_nombre });
+                }
+                if (element.estado) {
+                    sublist.setSublistValue({ id: 'custpage_estado', line: i, value: element.estado });
                 }
                 if (element.fec_ini_prod) {
                     sublist.setSublistValue({ id: 'custpage_fec_ini_prod', line: i, value: element.fec_ini_prod });
@@ -298,6 +302,7 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
             current.push('ORDEN DE TRABAJO');
             current.push('LOTE');
             current.push('TIPO DE ORDEN DE TRABAJO');
+            current.push('ESTADO');
             current.push('FECHA DE INICIO DE LA PRODUCCION');
             current.push('FECHA DE FINALIZACION DE PRODUCCION');
             current.push('FECHA DE COSTO ESTANDAR');
@@ -341,6 +346,7 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
                 current.push(element.orden_trabajo);
                 current.push(element.lote);
                 current.push(element.tipo_orden_trabajo_nombre);
+                current.push(element.estado);
                 current.push(element.fec_ini_prod);
                 current.push(element.fec_fin_prod);
                 current.push(element.fec_cos_est);
