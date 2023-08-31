@@ -46,7 +46,7 @@ define(['./Bio.Library.Helper', 'N'],
 
             // Cantidad de registros en search
             // let count = searchContext.runPaged().count;
-            // log.debug('', 'getDataOTByFecha')
+            // log.debug('', 'getDataOTByFecha');
             // log.debug('', count);
 
             // Recorrer search
@@ -66,7 +66,7 @@ define(['./Bio.Library.Helper', 'N'],
             result = {
                 data: data
             }
-            // log.debug('', 'getDataOTByFecha')
+            // log.debug('', 'getDataOTByFecha');
             // log.debug('', result);
             // objHelper.error_log('getDataOTByFecha', result);
             return result;
@@ -146,7 +146,7 @@ define(['./Bio.Library.Helper', 'N'],
 
             // Cantidad de registros en search
             // let count = searchContext.runPaged().count;
-            // log.debug('', 'getDataOTByLote')
+            // log.debug('', 'getDataOTByLote');
             // log.debug('', count);
 
             // Recorrer search
@@ -198,7 +198,7 @@ define(['./Bio.Library.Helper', 'N'],
             result = {
                 data: data
             }
-            // log.debug('', 'getDataOTByLote')
+            // log.debug('', 'getDataOTByLote');
             // log.debug('', result);
             // objHelper.error_log('getDataOTByLote', result);
             return result;
@@ -291,7 +291,7 @@ define(['./Bio.Library.Helper', 'N'],
 
             // Cantidad de registros en search
             // let count = searchContext.runPaged().count;
-            // log.debug('', 'getDataRevaluacion')
+            // log.debug('', 'getDataRevaluacion');
             // log.debug('', count);
 
             // Recorrer search
@@ -331,8 +331,8 @@ define(['./Bio.Library.Helper', 'N'],
             result = {
                 data: data
             }
-            // log.debug('', 'getDataRevaluacion')
-            // log.debug('', result)
+            // log.debug('', 'getDataRevaluacion');
+            // log.debug('', result);
             // objHelper.error_log('', result);
             return result;
         }
@@ -427,7 +427,7 @@ define(['./Bio.Library.Helper', 'N'],
 
             // Cantidad de registros en search
             // let count = searchContext.runPaged().count;
-            // log.debug('', 'getDataOT_RegistrosRelacionados')
+            // log.debug('', 'getDataOT_RegistrosRelacionados');
             // log.debug('', count);
 
             // Recorrer search
@@ -461,8 +461,8 @@ define(['./Bio.Library.Helper', 'N'],
             result = {
                 data: data,
             }
-            // log.debug('', 'getDataOT_RegistrosRelacionados')
-            // log.debug('', result)
+            // log.debug('', 'getDataOT_RegistrosRelacionados');
+            // log.debug('', result);
             // objHelper.error_log('getDataOT_RegistrosRelacionados', result);
             return result;
         }
@@ -535,7 +535,7 @@ define(['./Bio.Library.Helper', 'N'],
 
             // Cantidad de registros en search
             // let count = searchContext.runPaged().count;
-            // log.debug('', 'getDataOT_EmisionesOrdenesProduccion')
+            // log.debug('', 'getDataOT_EmisionesOrdenesProduccion');
             // log.debug('', count);
 
             // Recorrer search - con mas de 4000 registros
@@ -581,8 +581,8 @@ define(['./Bio.Library.Helper', 'N'],
             result = {
                 data: data,
             }
-            // log.debug('', 'getDataOT_EmisionesOrdenesProduccion')
-            // log.debug('', result)
+            // log.debug('', 'getDataOT_EmisionesOrdenesProduccion');
+            // log.debug('', result);
             // objHelper.error_log('getDataOT_EmisionesOrdenesProduccion', result);
             return result;
         }
@@ -641,7 +641,7 @@ define(['./Bio.Library.Helper', 'N'],
 
             // Cantidad de registros en search
             // let count = searchContext.runPaged().count;
-            // log.debug('', 'getDataOT_DatosProduccion')
+            // log.debug('', 'getDataOT_DatosProduccion');
             // log.debug('', count);
 
             // Recorrer search - con mas de 4000 registros
@@ -697,8 +697,8 @@ define(['./Bio.Library.Helper', 'N'],
             result = {
                 data: data,
             }
-            // log.debug('', 'getDataOT_DatosProduccion')
-            // log.debug('', result)
+            // log.debug('', 'getDataOT_DatosProduccion');
+            // log.debug('', result);
             // objHelper.error_log('getDataOT_DatosProduccion', result);
             return result;
         }
