@@ -87,6 +87,8 @@
             <Column ss:Width="90" />
             <Column ss:Width="90" />
             <Column ss:Width="90" />
+            <Column ss:Width="90" />
+            <Column ss:Width="90" />
             <Row> <!-- Fila -->
                 <Cell ss:StyleID="t1">
                     <Data ss:Type="String">Reporte</Data>
@@ -127,10 +129,16 @@
                     <Data ss:Type="String">ESTADO</Data>
                 </Cell>
                 <Cell ss:StyleID="header">
+                    <Data ss:Type="String">FECHA</Data>
+                </Cell>
+                <Cell ss:StyleID="header">
                     <Data ss:Type="String">FECHA DE INICIO DE LA PRODUCCION</Data>
                 </Cell>
                 <Cell ss:StyleID="header">
-                    <Data ss:Type="String">FECHA DE FINALIZACION DE LA PRODUCCION</Data>
+                    <Data ss:Type="String">FECHA DE FINALIZACION DE PRODUCCION</Data>
+                </Cell>
+                <Cell ss:StyleID="header">
+                    <Data ss:Type="String">FECHA DE CIERRE DE PRODUCCION</Data>
                 </Cell>
                 <Cell ss:StyleID="header">
                     <Data ss:Type="String">FECHA DE COSTO ESTANDAR</Data>
@@ -231,10 +239,16 @@
                     <Data ss:Type="String">${line.estado}</Data>
                 </Cell>
                 <Cell ss:StyleID="cell">
+                    <Data ss:Type="String">${line.fec}</Data>
+                </Cell>
+                <Cell ss:StyleID="cell">
                     <Data ss:Type="String">${line.fec_ini_prod}</Data>
                 </Cell>
                 <Cell ss:StyleID="cell">
                     <Data ss:Type="String">${line.fec_fin_prod}</Data>
+                </Cell>
+                <Cell ss:StyleID="cell">
+                    <Data ss:Type="String">${line.fec_cie_prod}</Data>
                 </Cell>
                 <Cell ss:StyleID="cell">
                     <Data ss:Type="String">${line.fec_cos_est}</Data>

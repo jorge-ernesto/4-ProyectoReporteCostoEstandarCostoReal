@@ -46,18 +46,27 @@ define(['./Bio.Library.Helper', 'N'],
                     // Convertir string vacio '' a 0
                     // Referencia: https://donnierock.com/2015/06/16/javascript-devolver-0-cuando-parseint-o-parsefloat-reciban-una-cadena-vacia/
                     let codigo_oracle = value_ot.codigo_oracle
-                    dataOT[key_ot]['fec_cos_est'] = dataRevaluacion_['items'][codigo_oracle][0]['trandate'];
-                    dataOT[key_ot]['costo_estandar_md'] = parseFloat(dataRevaluacion_['items'][codigo_oracle][0]['costo_estandar_md'] || 0);
-                    dataOT[key_ot]['costo_estandar_mod'] = parseFloat(dataRevaluacion_['items'][codigo_oracle][0]['costo_estandar_mod'] || 0);
-                    dataOT[key_ot]['costo_estandar_srv'] = parseFloat(dataRevaluacion_['items'][codigo_oracle][0]['costo_estandar_srv'] || 0);
-                    dataOT[key_ot]['costo_estandar_cif'] = parseFloat(dataRevaluacion_['items'][codigo_oracle][0]['costo_estandar_cif'] || 0);
-                    dataOT[key_ot]['costo_estandar_total'] = parseFloat(dataRevaluacion_['items'][codigo_oracle][0]['costcomponentstandardcost'] || 0);
+                    if (dataRevaluacion_['items'][codigo_oracle]) {
+                        dataOT[key_ot]['fec_cos_est'] = dataRevaluacion_['items'][codigo_oracle][0]['trandate'] || '';
+                        dataOT[key_ot]['costo_estandar_md'] = parseFloat(dataRevaluacion_['items'][codigo_oracle][0]['costo_estandar_md'] || 0);
+                        dataOT[key_ot]['costo_estandar_mod'] = parseFloat(dataRevaluacion_['items'][codigo_oracle][0]['costo_estandar_mod'] || 0);
+                        dataOT[key_ot]['costo_estandar_srv'] = parseFloat(dataRevaluacion_['items'][codigo_oracle][0]['costo_estandar_srv'] || 0);
+                        dataOT[key_ot]['costo_estandar_cif'] = parseFloat(dataRevaluacion_['items'][codigo_oracle][0]['costo_estandar_cif'] || 0);
+                        dataOT[key_ot]['costo_estandar_total'] = parseFloat(dataRevaluacion_['items'][codigo_oracle][0]['costcomponentstandardcost'] || 0);
+                    } else {
+                        dataOT[key_ot]['fec_cos_est'] = '';
+                        dataOT[key_ot]['costo_estandar_md'] = 0;
+                        dataOT[key_ot]['costo_estandar_mod'] = 0;
+                        dataOT[key_ot]['costo_estandar_srv'] = 0;
+                        dataOT[key_ot]['costo_estandar_cif'] = 0;
+                        dataOT[key_ot]['costo_estandar_total'] = 0;
+                    }
                 });
 
                 // RECORRER LOS REGISTROS RELACIONADOS (EMISIONES DE ORDENES DE PRODUCCION) DE LAS ORDENES DE TRABAJO PARA AGREGAR -- LA INFORMACION DE IMPACTO EN LM
                 dataOT_RegistrosRelacionados.forEach((value_regrel, key_regrel) => {
                     dataOT_EmisionesOrdenesProduccion.forEach((value_emi, key_emi) => {
-                        if (value_regrel.related_record_number == value_emi.emision_orden_produccion_numero) {
+                        if (value_regrel.related_record_number == value_emi.emision_orden_produccion_numero && value_regrel.related_record_typecode == 'WOIssue') {
                             dataOT_RegistrosRelacionados[key_regrel]['impacto_en_lm'] = dataOT_RegistrosRelacionados[key_regrel]['impacto_en_lm'] || [];
                             dataOT_RegistrosRelacionados[key_regrel]['impacto_en_lm'].push(value_emi)
                         }
@@ -67,11 +76,20 @@ define(['./Bio.Library.Helper', 'N'],
                 // RECORRER ORDENES DE TRABAJO PARA AGREGAR -- REGISTROS RELACIONADOS (EMISIONES DE ORDENES DE PRODUCCION)
                 dataOT.forEach((value_ot, key_ot) => {
                     dataOT_RegistrosRelacionados.forEach((value_regrel, key_regrel) => {
-                        if (value_ot.orden_trabajo == value_regrel.orden_trabajo_numero) {
+                        if (value_ot.orden_trabajo == value_regrel.orden_trabajo_numero && value_regrel.related_record_typecode == 'WOIssue') {
                             dataOT[key_ot]['registros_relacionados'] = dataOT[key_ot]['registros_relacionados'] || [];
                             dataOT[key_ot]['registros_relacionados'].push(value_regrel)
                         }
-                    })
+                    });
+                });
+
+                // RECORRER ORDENES DE TRABAJO PARA AGREGAR -- REGISTROS RELACIONADOS (FECHA DE CIERRE DE ORDEN DE PRODUCCION)
+                dataOT.forEach((value_ot, key_ot) => {
+                    dataOT_RegistrosRelacionados.forEach((value_regrel, key_regrel) => {
+                        if (value_ot.orden_trabajo == value_regrel.orden_trabajo_numero && value_regrel.related_record_typecode == 'WOClose') {
+                            dataOT[key_ot]['fec_cie_prod'] = value_regrel.related_record_date;
+                        }
+                    });
                 });
 
                 // RECORRER ORDENES DE TRABAJO (TIPO DE ORDEN DE TRABAJO: FABRICACION) PARA OBTENER:
@@ -290,8 +308,10 @@ define(['./Bio.Library.Helper', 'N'],
                 json.lote = element.lote;
                 json.tipo_orden_trabajo_nombre = element.tipo_orden_trabajo_nombre;
                 json.estado = element.estado;
+                json.fec = element.fec;
                 json.fec_ini_prod = element.fec_ini_prod;
                 json.fec_fin_prod = element.fec_fin_prod;
+                json.fec_cie_prod = element.fec_cie_prod;
                 json.fec_cos_est = element.fec_cos_est;
                 json.centro_costo = element.centro_costo;
                 json.codigo_oracle = element.codigo_oracle;

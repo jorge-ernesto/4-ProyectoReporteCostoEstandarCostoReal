@@ -127,8 +127,10 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
             sublist.addField({ id: 'custpage_lote', type: serverWidget.FieldType.TEXT, label: 'LOTE' });
             sublist.addField({ id: 'custpage_tipo_orden_trabajo', type: serverWidget.FieldType.TEXT, label: 'TIPO DE ORDEN DE TRABAJO' });
             sublist.addField({ id: 'custpage_estado', type: serverWidget.FieldType.TEXT, label: 'ESTADO' });
+            sublist.addField({ id: 'custpage_fec', type: serverWidget.FieldType.TEXT, label: 'FECHA' });
             sublist.addField({ id: 'custpage_fec_ini_prod', type: serverWidget.FieldType.TEXT, label: 'FECHA DE INICIO DE LA PRODUCCIÓN' });
-            sublist.addField({ id: 'custpage_fec_fin_prod', type: serverWidget.FieldType.TEXT, label: 'FECHA DE FINALIZACIÓN DE PRODUCCION' });
+            sublist.addField({ id: 'custpage_fec_fin_prod', type: serverWidget.FieldType.TEXT, label: 'FECHA DE FINALIZACIÓN DE PRODUCCIÓN' });
+            sublist.addField({ id: 'custpage_fec_cie_prod', type: serverWidget.FieldType.TEXT, label: 'FECHA DE CIERRE DE PRODUCCIÓN' });
             sublist.addField({ id: 'custpage_fec_cos_est', type: serverWidget.FieldType.TEXT, label: 'FECHA DE COSTO ESTANDAR' });
             sublist.addField({ id: 'custpage_centro_costo', type: serverWidget.FieldType.TEXT, label: 'CENTRO DE COSTO' });
             sublist.addField({ id: 'custpage_codigo_oracle', type: serverWidget.FieldType.TEXT, label: 'CÓDIGO ORACLE' });
@@ -175,11 +177,17 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
                 if (element.estado) {
                     sublist.setSublistValue({ id: 'custpage_estado', line: i, value: element.estado });
                 }
+                if (element.fec) {
+                    sublist.setSublistValue({ id: 'custpage_fec', line: i, value: element.fec });
+                }
                 if (element.fec_ini_prod) {
                     sublist.setSublistValue({ id: 'custpage_fec_ini_prod', line: i, value: element.fec_ini_prod });
                 }
                 if (element.fec_fin_prod) {
                     sublist.setSublistValue({ id: 'custpage_fec_fin_prod', line: i, value: element.fec_fin_prod });
+                }
+                if (element.fec_cie_prod) {
+                    sublist.setSublistValue({ id: 'custpage_fec_cie_prod', line: i, value: element.fec_cie_prod });
                 }
                 if (element.fec_cos_est) {
                     sublist.setSublistValue({ id: 'custpage_fec_cos_est', line: i, value: element.fec_cos_est });
@@ -303,8 +311,10 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
             current.push('LOTE');
             current.push('TIPO DE ORDEN DE TRABAJO');
             current.push('ESTADO');
+            current.push('FECHA');
             current.push('FECHA DE INICIO DE LA PRODUCCION');
             current.push('FECHA DE FINALIZACION DE PRODUCCION');
+            current.push('FECHA DE CIERRE DE PRODUCCION');
             current.push('FECHA DE COSTO ESTANDAR');
             current.push('CENTRO DE COSTO');
             current.push('CODIGO ORACLE');
@@ -347,6 +357,7 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
                 current.push(element.lote);
                 current.push(element.tipo_orden_trabajo_nombre);
                 current.push(element.estado);
+                current.push(element.fec);
                 current.push(element.fec_ini_prod);
                 current.push(element.fec_fin_prod);
                 current.push(element.fec_cos_est);
@@ -447,9 +458,10 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
                     fieldCheckPaginate.defaultValue = checkPaginate;
 
                     // Obtener datos por search
-                    let dataOT = objSearch.getDataOT(subsidiary, dateFrom, dateTo);
+                    let dataOTByFecha = objSearch.getDataOTByFecha(subsidiary, dateFrom, dateTo);
+                    let dataOT = objSearch.getDataOTByLote(subsidiary, dataOTByFecha['data']);
                     let dataRevaluacion = objSearch.getDataRevaluacion(subsidiary);
-                    let dataOT_RegistrosRelacionados = objSearch.getDataOT_RegistrosRelacionados(subsidiary, dateFrom, dateTo);
+                    let dataOT_RegistrosRelacionados = objSearch.getDataOT_RegistrosRelacionados(subsidiary, dataOTByFecha['data']);
                     let dataOT_EmisionesOrdenesProduccion = objSearch.getDataOT_EmisionesOrdenesProduccion(subsidiary, dataOT_RegistrosRelacionados['data'])
                     let dataOT_DatosProduccion = objSearch.getDataOT_DatosProduccion(subsidiary, dateFrom, dateTo, dataOT['data']);
                     let dataOT_Completo = objProcess.getDataOT_Completo(dataOT['data'], dataRevaluacion['data'], dataOT_RegistrosRelacionados['data'], dataOT_EmisionesOrdenesProduccion['data'], dataOT_DatosProduccion['data']);
@@ -467,9 +479,10 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
                     fieldCheckPaginate.defaultValue = checkPaginate;
 
                     // Obtener datos por search
-                    let dataOT = objSearch.getDataOT(subsidiary, dateFrom, dateTo);
+                    let dataOTByFecha = objSearch.getDataOTByFecha(subsidiary, dateFrom, dateTo);
+                    let dataOT = objSearch.getDataOTByLote(subsidiary, dataOTByFecha['data']);
                     let dataRevaluacion = objSearch.getDataRevaluacion(subsidiary);
-                    let dataOT_RegistrosRelacionados = objSearch.getDataOT_RegistrosRelacionados(subsidiary, dateFrom, dateTo);
+                    let dataOT_RegistrosRelacionados = objSearch.getDataOT_RegistrosRelacionados(subsidiary, dataOTByFecha['data']);
                     let dataOT_EmisionesOrdenesProduccion = objSearch.getDataOT_EmisionesOrdenesProduccion(subsidiary, dataOT_RegistrosRelacionados['data'])
                     let dataOT_DatosProduccion = objSearch.getDataOT_DatosProduccion(subsidiary, dateFrom, dateTo, dataOT['data']);
                     let dataOT_Completo = objProcess.getDataOT_Completo(dataOT['data'], dataRevaluacion['data'], dataOT_RegistrosRelacionados['data'], dataOT_EmisionesOrdenesProduccion['data'], dataOT_DatosProduccion['data']);

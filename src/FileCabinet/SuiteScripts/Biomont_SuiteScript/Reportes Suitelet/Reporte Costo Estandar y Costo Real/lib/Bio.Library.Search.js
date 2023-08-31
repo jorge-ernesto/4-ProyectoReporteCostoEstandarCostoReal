@@ -8,7 +8,7 @@ define(['./Bio.Library.Helper', 'N'],
 
         const { log, search } = N;
 
-        function getDataOT(subsidiary, dateFrom, dateTo) {
+        function getDataOTByFecha(subsidiary, dateFrom, dateTo) {
 
             // Declarar variables
             let result = {};
@@ -20,8 +20,72 @@ define(['./Bio.Library.Helper', 'N'],
                 array_where_subsidiary = ["subsidiary", "anyof", subsidiary];
             }
 
+            // Declarar search
+            let searchObject = {
+                type: 'workorder',
+                columns: [
+                    search.createColumn({ name: "custbodybio_cam_lote", label: "LOTE" })
+                ],
+                filters: [
+                    ["mainline", "is", "T"],
+                    "AND",
+                    ["type", "anyof", "WorkOrd"],
+                    "AND",
+                    ["trandate", "within", dateFrom, dateTo],
+                    "AND",
+                    ["status", "anyof", "WorkOrd:H", "WorkOrd:D", "WorkOrd:B"],
+                    "AND",
+                    ["item.custitem3", "anyof", "2", "6", "1", "3", "10", "11", "9", "48", "4"],
+                    "AND",
+                    array_where_subsidiary
+                ],
+            };
+
             // Crear search
-            let searchContext = search.create({
+            let searchContext = search.create(searchObject);
+
+            // Cantidad de registros en search
+            // let count = searchContext.runPaged().count;
+            // log.debug('', 'getDataOTByFecha')
+            // log.debug('', count);
+
+            // Recorrer search
+            searchContext.run().each(node => {
+                // Obtener informacion
+                let columns = node.columns;
+                let lote = node.getValue(columns[0]); // LOTE
+
+                // Insertar informacion en array
+                data.push({
+                    lote: lote,
+                });
+                return true; // La funcion each debes indicarle si quieres que siga iterando o no
+            })
+
+            // Retornar informacion
+            result = {
+                data: data
+            }
+            // log.debug('', 'getDataOTByFecha')
+            // log.debug('', result);
+            // objHelper.error_log('getDataOTByFecha', result);
+            return result;
+        }
+
+        function getDataOTByLote(subsidiary, dataOTByFecha) {
+
+            // Declarar variables
+            let result = {};
+            let data = [];
+
+            // Filtro de subsidiary
+            let array_where_subsidiary = ["subsidiary", "anyof", "@NONE@"];
+            if (subsidiary != '') {
+                array_where_subsidiary = ["subsidiary", "anyof", subsidiary];
+            }
+
+            // Declarar search
+            let searchObject = {
                 type: 'workorder',
                 columns: [
                     search.createColumn({ name: "internalid", label: "ID INTERNO" }),
@@ -53,26 +117,36 @@ define(['./Bio.Library.Helper', 'N'],
                         join: "item",
                         label: "VOLUMEN"
                     }),
-                    search.createColumn({ name: "statusref", label: "Estado" })
+                    search.createColumn({ name: "statusref", label: "ESTADO" }),
+                    search.createColumn({ name: "trandate", label: "FECHA" })
                 ],
                 filters: [
                     ["mainline", "is", "T"],
                     "AND",
                     ["type", "anyof", "WorkOrd"],
                     "AND",
-                    ["trandate", "within", dateFrom, dateTo],
-                    "AND",
-                    ["status", "anyof", "WorkOrd:H", "WorkOrd:D"],
+                    ["status", "anyof", "WorkOrd:H", "WorkOrd:D", "WorkOrd:B"],
                     "AND",
                     ["item.custitem3", "anyof", "2", "6", "1", "3", "10", "11", "9", "48", "4"],
                     "AND",
                     array_where_subsidiary
                 ],
-            });
+            };
+
+            // Filtro de lotes
+            if (dataOTByFecha.length > 0) {
+
+                let array_where_lotes = getFilterLote(dataOTByFecha);
+                searchObject.filters.push('AND');
+                searchObject.filters.push(array_where_lotes);
+            }
+
+            // Crear search
+            let searchContext = search.create(searchObject);
 
             // Cantidad de registros en search
             // let count = searchContext.runPaged().count;
-            // log.debug('', 'getDataOT')
+            // log.debug('', 'getDataOTByLote')
             // log.debug('', count);
 
             // Recorrer search
@@ -95,6 +169,7 @@ define(['./Bio.Library.Helper', 'N'],
                 let cantidad_teorica = node.getValue(columns[11]); // CANTIDAD TEORICA
                 let volumen = node.getValue(columns[12]); // VOLUMEN
                 let estado = node.getText(columns[13]); // ESTADO
+                let fec = node.getValue(columns[14]); // FECHA
 
                 // Insertar informacion en array
                 data.push({
@@ -114,6 +189,7 @@ define(['./Bio.Library.Helper', 'N'],
                     cantidad_teorica: cantidad_teorica,
                     volumen: volumen,
                     estado: estado,
+                    fec: fec,
                 });
                 return true; // La funcion each debes indicarle si quieres que siga iterando o no
             })
@@ -122,9 +198,9 @@ define(['./Bio.Library.Helper', 'N'],
             result = {
                 data: data
             }
-            // log.debug('', 'getDataOT')
+            // log.debug('', 'getDataOTByLote')
             // log.debug('', result);
-            // objHelper.error_log('getDataOT', result);
+            // objHelper.error_log('getDataOTByLote', result);
             return result;
         }
 
@@ -261,7 +337,7 @@ define(['./Bio.Library.Helper', 'N'],
             return result;
         }
 
-        function getDataOT_RegistrosRelacionados(subsidiary, dateFrom, dateTo) {
+        function getDataOT_RegistrosRelacionados(subsidiary, dataOTByFecha) {
 
             // Declarar variables
             let result = {};
@@ -273,8 +349,8 @@ define(['./Bio.Library.Helper', 'N'],
                 array_where_subsidiary = ["subsidiary", "anyof", subsidiary];
             }
 
-            // Crear search
-            let searchContext = search.create({
+            // Declarar search
+            let searchObject = {
                 type: 'workorder',
                 columns: [
                     search.createColumn({
@@ -306,6 +382,12 @@ define(['./Bio.Library.Helper', 'N'],
                         label: "Related Records : TYPE"
                     }),
                     search.createColumn({
+                        name: "typecode",
+                        join: "applyingTransaction",
+                        summary: "GROUP",
+                        label: "Related Records : TYPECODE"
+                    }),
+                    search.createColumn({
                         name: "internalid",
                         join: "applyingTransaction",
                         summary: "GROUP",
@@ -324,15 +406,24 @@ define(['./Bio.Library.Helper', 'N'],
                     "AND",
                     ["type", "anyof", "WorkOrd"],
                     "AND",
-                    ["trandate", "within", dateFrom, dateTo],
-                    "AND",
-                    ["status", "anyof", "WorkOrd:H", "WorkOrd:D"],
+                    ["status", "anyof", "WorkOrd:H", "WorkOrd:D", "WorkOrd:B"],
                     "AND",
                     array_where_subsidiary,
                     "AND",
-                    ["applyingtransaction.type", "anyof", "WOIssue"]
+                    ["applyingtransaction.type", "anyof", "WOIssue", "WOClose"]
                 ],
-            });
+            };
+
+            // Filtro de lotes
+            if (dataOTByFecha.length > 0) {
+
+                let array_where_lotes = getFilterLote(dataOTByFecha);
+                searchObject.filters.push('AND');
+                searchObject.filters.push(array_where_lotes);
+            }
+
+            // Crear search
+            let searchContext = search.create(searchObject);
 
             // Cantidad de registros en search
             // let count = searchContext.runPaged().count;
@@ -348,8 +439,9 @@ define(['./Bio.Library.Helper', 'N'],
                 // let lote = node.getValue(columns[2]); // Lote
                 let related_record_date = node.getValue(columns[3]); // Related Records : DATE
                 let related_record_type = node.getValue(columns[4]); // Related Records : TYPE
-                let related_record_internal_id = node.getValue(columns[5]); // Related Records : INTERNAL ID
-                let related_record_number = node.getValue(columns[6]); // Related Records : NUMBER
+                let related_record_typecode = node.getValue(columns[5]); // Related Records : TYPECODE
+                let related_record_internal_id = node.getValue(columns[6]); // Related Records : INTERNAL ID
+                let related_record_number = node.getValue(columns[7]); // Related Records : NUMBER
 
                 // Insertar informacion en array
                 data.push({
@@ -358,6 +450,7 @@ define(['./Bio.Library.Helper', 'N'],
                     // lote: lote,
                     related_record_date: related_record_date,
                     related_record_type: related_record_type,
+                    related_record_typecode: related_record_typecode,
                     related_record_internal_id: related_record_internal_id,
                     related_record_number: related_record_number
                 });
@@ -610,6 +703,38 @@ define(['./Bio.Library.Helper', 'N'],
             return result;
         }
 
-        return { getDataOT, getDataRevaluacion, getDataOT_RegistrosRelacionados, getDataOT_EmisionesOrdenesProduccion, getDataOT_DatosProduccion }
+        function getFilterLote(dataOTByFecha) {
+
+            // Obtener lotes en un nuevo array
+            let data_lotes = [];
+            dataOTByFecha.forEach(element => {
+                data_lotes.push(element.lote);
+            });
+            // objHelper.error_log('', data_lotes);
+
+            // Filtrar lotes duplicados
+            // Referencia: https://matiashernandez.dev/blog/post/4-formas-de-eliminar-elementos-duplicados-en-un-arreglo-con-javascript
+            let data_filter_lotes = [];
+            const dataArr = new Set(data_lotes);
+            data_filter_lotes = [...dataArr];
+            // objHelper.error_log('', data_filter_lotes);
+
+            // Filtro de lotes
+            let array_where_lotes = [];
+            data_filter_lotes.forEach(element => {
+                array_where_lotes.push(['custbodybio_cam_lote', 'is', `${element}`])
+                array_where_lotes.push('OR')
+            });
+            // objHelper.error_log('', array_where_lotes)
+
+            // Eliminar ultimo elemento de un array
+            // Referencia: https://forfrontend.tips/eliminar-elementos-de-un-array-en-javascript
+            array_where_lotes.pop();
+            // objHelper.error_log('', array_where_lotes)
+
+            return array_where_lotes;
+        }
+
+        return { getDataOTByFecha, getDataOTByLote, getDataRevaluacion, getDataOT_RegistrosRelacionados, getDataOT_EmisionesOrdenesProduccion, getDataOT_DatosProduccion }
 
     });

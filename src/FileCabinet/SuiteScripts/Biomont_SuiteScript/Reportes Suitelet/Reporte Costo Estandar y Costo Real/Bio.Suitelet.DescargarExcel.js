@@ -87,9 +87,10 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', 'N'],
 
                 if (scriptContext.request.parameters['_button'] == 'excel') {
                     // Obtener datos por search
-                    let dataOT = objSearch.getDataOT(subsidiary, dateFrom, dateTo);
+                    let dataOTByFecha = objSearch.getDataOTByFecha(subsidiary, dateFrom, dateTo);
+                    let dataOT = objSearch.getDataOTByLote(subsidiary, dataOTByFecha['data']);
                     let dataRevaluacion = objSearch.getDataRevaluacion(subsidiary);
-                    let dataOT_RegistrosRelacionados = objSearch.getDataOT_RegistrosRelacionados(subsidiary, dateFrom, dateTo);
+                    let dataOT_RegistrosRelacionados = objSearch.getDataOT_RegistrosRelacionados(subsidiary, dataOTByFecha['data']);
                     let dataOT_EmisionesOrdenesProduccion = objSearch.getDataOT_EmisionesOrdenesProduccion(subsidiary, dataOT_RegistrosRelacionados['data'])
                     let dataOT_DatosProduccion = objSearch.getDataOT_DatosProduccion(subsidiary, dateFrom, dateTo, dataOT['data']);
                     let dataOT_Completo = objProcess.getDataOT_Completo(dataOT['data'], dataRevaluacion['data'], dataOT_RegistrosRelacionados['data'], dataOT_EmisionesOrdenesProduccion['data'], dataOT_DatosProduccion['data']);
