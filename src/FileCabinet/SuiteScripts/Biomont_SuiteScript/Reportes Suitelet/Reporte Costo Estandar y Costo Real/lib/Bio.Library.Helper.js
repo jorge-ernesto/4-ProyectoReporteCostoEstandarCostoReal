@@ -11,7 +11,36 @@ define(['N'],
         function getDate() {
             let today = new Date();
             let firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-            return { today, firstDayOfMonth };
+
+            // Calcular el mes pasado, ajustando el año si es enero
+            let yearOfMonthPast = today.getFullYear();
+            let monthOfMonthPast = today.getMonth() - 1;
+
+            // En JavaScript, los meses se representan con valores enteros del 0 al 11, donde 0 es enero y 11 es diciembre.
+            if (monthOfMonthPast === -1) {
+                // Si es enero, retrocede al mes pasado del año anterior
+                yearOfMonthPast--;
+                monthOfMonthPast = 11; // Diciembre
+            }
+
+            let firstDayOfMonthPast = new Date(yearOfMonthPast, monthOfMonthPast, 1);
+            let lastDayOfMonthPast = new Date(today.getFullYear(), today.getMonth(), 0);
+
+            return { today, firstDayOfMonth, firstDayOfMonthPast, lastDayOfMonthPast, monthOfMonthPast };
+        }
+
+        function getMonth() {
+            let result = [];
+            let value = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+            let text = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+            value.forEach((element, i) => {
+                result.push({
+                    id: value[i],
+                    name: text[i],
+                })
+            });
+            return result;
         }
 
         function getUser() {
@@ -77,6 +106,6 @@ define(['N'],
             return !isNaN(n);
         }
 
-        return { getDate, getUser, error_log, email_log, isNumeric }
+        return { getDate, getMonth, getUser, error_log, email_log, isNumeric }
 
     });

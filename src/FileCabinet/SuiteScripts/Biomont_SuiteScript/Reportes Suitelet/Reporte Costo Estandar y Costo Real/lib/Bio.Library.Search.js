@@ -8,7 +8,7 @@ define(['./Bio.Library.Helper', 'N'],
 
         const { log, search } = N;
 
-        function getDataOTByFecha(subsidiary, dateFrom, dateTo) {
+        function getDataOTByFecha(subsidiary, dateFrom, dateTo, lote = '') {
 
             // Declarar variables
             let result = {};
@@ -40,6 +40,12 @@ define(['./Bio.Library.Helper', 'N'],
                     array_where_subsidiary
                 ],
             };
+
+            // Filtro de lote
+            if (lote != '') {
+                searchObject.filters.push('AND');
+                searchObject.filters.push(['custbodybio_cam_lote', 'is', `${lote}`]);
+            }
 
             // Crear search
             let searchContext = search.create(searchObject);
@@ -96,6 +102,7 @@ define(['./Bio.Library.Helper', 'N'],
                     }),
                     search.createColumn({ name: "custbodybio_cam_lote", label: "LOTE" }),
                     search.createColumn({ name: "custbody8", label: "TIPO DE ORDEN DE TRABAJO" }),
+                    search.createColumn({ name: "trandate", label: "FECHA" }),
                     search.createColumn({ name: "custbody126", label: "FECHA DE INICIO DE LA PRODUCCIÓN" }),
                     search.createColumn({ name: "enddate", label: "FECHA DE FINALIZACIÓN DE PRODUCCION" }),
                     search.createColumn({ name: "class", label: "CENTRO DE COSTO" }),
@@ -117,8 +124,7 @@ define(['./Bio.Library.Helper', 'N'],
                         join: "item",
                         label: "VOLUMEN"
                     }),
-                    search.createColumn({ name: "statusref", label: "ESTADO" }),
-                    search.createColumn({ name: "trandate", label: "FECHA" })
+                    search.createColumn({ name: "statusref", label: "ESTADO" })
                 ],
                 filters: [
                     ["mainline", "is", "T"],
@@ -134,8 +140,10 @@ define(['./Bio.Library.Helper', 'N'],
             };
 
             // Filtro de lotes
-            if (dataOTByFecha.length > 0) {
-
+            if (dataOTByFecha.length <= 0) {
+                searchObject.filters.push('AND');
+                searchObject.filters.push(['custbodybio_cam_lote', 'is', '']);
+            } else {
                 let array_where_lotes = getFilterLote(dataOTByFecha);
                 searchObject.filters.push('AND');
                 searchObject.filters.push(array_where_lotes);
@@ -158,18 +166,18 @@ define(['./Bio.Library.Helper', 'N'],
                 let lote = node.getValue(columns[2]); // LOTE
                 let tipo_orden_trabajo = node.getValue(columns[3]); // TIPO DE ORDEN DE TRABAJO
                 let tipo_orden_trabajo_nombre = node.getText(columns[3]); // TIPO DE ORDEN DE TRABAJO
-                let fec_ini_prod = node.getValue(columns[4]); // FECHA DE INICIO DE LA PRODUCCIÓN
-                let fec_fin_prod = node.getValue(columns[5]); // FECHA DE FINALIZACIÓN DE PRODUCCION
-                let centro_costo = node.getText(columns[6]); // CENTRO DE COSTO
-                let codigo_oracle = node.getText(columns[7]); // CÓDIGO ORACLE
-                let descripcion = node.getValue(columns[8]); // DESCRIPCIÓN
-                let cantidad_construido = node.getValue(columns[9]); // CANTIDAD CONSTRUIDO / REAL
-                let linea = node.getValue(columns[10]); // LINEA
-                let linea_nombre = node.getText(columns[10]); // LINEA
-                let cantidad_teorica = node.getValue(columns[11]); // CANTIDAD TEORICA
-                let volumen = node.getValue(columns[12]); // VOLUMEN
-                let estado = node.getText(columns[13]); // ESTADO
-                let fec = node.getValue(columns[14]); // FECHA
+                let fec = node.getValue(columns[4]); // FECHA
+                let fec_ini_prod = node.getValue(columns[5]); // FECHA DE INICIO DE LA PRODUCCIÓN
+                let fec_fin_prod = node.getValue(columns[6]); // FECHA DE FINALIZACIÓN DE PRODUCCION
+                let centro_costo = node.getText(columns[7]); // CENTRO DE COSTO
+                let codigo_oracle = node.getText(columns[8]); // CÓDIGO ORACLE
+                let descripcion = node.getValue(columns[9]); // DESCRIPCIÓN
+                let cantidad_construido = node.getValue(columns[10]); // CANTIDAD CONSTRUIDO / REAL
+                let linea = node.getValue(columns[11]); // LINEA
+                let linea_nombre = node.getText(columns[11]); // LINEA
+                let cantidad_teorica = node.getValue(columns[12]); // CANTIDAD TEORICA
+                let volumen = node.getValue(columns[13]); // VOLUMEN
+                let estado = node.getText(columns[14]); // ESTADO
 
                 // Insertar informacion en array
                 data.push({
@@ -178,6 +186,7 @@ define(['./Bio.Library.Helper', 'N'],
                     lote: lote,
                     tipo_orden_trabajo: tipo_orden_trabajo,
                     tipo_orden_trabajo_nombre: tipo_orden_trabajo_nombre,
+                    fec: fec,
                     fec_ini_prod: fec_ini_prod,
                     fec_fin_prod: fec_fin_prod,
                     centro_costo: centro_costo,
@@ -189,7 +198,6 @@ define(['./Bio.Library.Helper', 'N'],
                     cantidad_teorica: cantidad_teorica,
                     volumen: volumen,
                     estado: estado,
-                    fec: fec,
                 });
                 return true; // La funcion each debes indicarle si quieres que siga iterando o no
             })
@@ -415,8 +423,10 @@ define(['./Bio.Library.Helper', 'N'],
             };
 
             // Filtro de lotes
-            if (dataOTByFecha.length > 0) {
-
+            if (dataOTByFecha.length <= 0) {
+                searchObject.filters.push('AND');
+                searchObject.filters.push(['custbodybio_cam_lote', 'is', '']);
+            } else {
                 let array_where_lotes = getFilterLote(dataOTByFecha);
                 searchObject.filters.push('AND');
                 searchObject.filters.push(array_where_lotes);
@@ -469,16 +479,6 @@ define(['./Bio.Library.Helper', 'N'],
 
         function getDataOT_EmisionesOrdenesProduccion(subsidiary, dataOT_RegistrosRelacionados) {
 
-            // Obtener los ID de registros relacionados
-            let array_registros_relacionados_id_interno = ["internalid", "anyof", "@NONE@"];
-            if (dataOT_RegistrosRelacionados.length > 0) {
-                array_registros_relacionados_id_interno = ["internalid", "anyof"];
-                dataOT_RegistrosRelacionados.forEach(element => {
-                    array_registros_relacionados_id_interno.push(element.related_record_internal_id)
-                });
-            }
-            // objHelper.error_log('', array_registros_relacionados_id_interno);
-
             // Declarar variables
             let result = {};
             let data = [];
@@ -488,6 +488,16 @@ define(['./Bio.Library.Helper', 'N'],
             if (subsidiary != '') {
                 array_where_subsidiary = ["subsidiary", "anyof", subsidiary];
             }
+
+            // Obtener los ID de registros relacionados
+            let array_registros_relacionados_id_interno = ["internalid", "anyof", "@NONE@"];
+            if (dataOT_RegistrosRelacionados.length > 0) {
+                array_registros_relacionados_id_interno = ["internalid", "anyof"];
+                dataOT_RegistrosRelacionados.forEach(element => {
+                    array_registros_relacionados_id_interno.push(element.related_record_internal_id)
+                });
+            }
+            // objHelper.error_log('', array_registros_relacionados_id_interno);
 
             // Crear search
             let searchContext = search.create({
@@ -511,11 +521,18 @@ define(['./Bio.Library.Helper', 'N'],
                     }),
                     search.createColumn({ name: "item", label: "Item" }),
                     search.createColumn({
+                        name: "displayname",
+                        join: "item",
+                        label: "Display Name"
+                    }),
+                    search.createColumn({
                         name: "custitem3",
                         join: "item",
                         label: "Line"
                     }),
                     search.createColumn({ name: "quantity", label: "Quantity" }),
+                    search.createColumn({ name: "unit", label: "Units" }),
+                    search.createColumn({ name: "unitabbreviation", label: "Units Abbreviation" }),
                     search.createColumn({ name: "account", label: "Account" }),
                     search.createColumn({ name: "debitamount", label: "Amount (Debit)" }),
                     search.createColumn({ name: "creditamount", label: "Amount (Credit)" })
@@ -552,12 +569,15 @@ define(['./Bio.Library.Helper', 'N'],
                     let work_order_issue_number = row.getValue(columns[3]);
                     let item = row.getValue(columns[4]);
                     let item_name = row.getText(columns[4]);
-                    let line = row.getValue(columns[5]);
-                    let line_name = row.getText(columns[5]);
-                    let quantity = row.getValue(columns[6]);
-                    let account = row.getValue(columns[7]);
-                    let account_name = row.getText(columns[7]);
-                    let debitamount = row.getValue(columns[8]);
+                    let displayname = row.getValue(columns[5]);
+                    let line = row.getValue(columns[6]);
+                    let line_name = row.getText(columns[6]);
+                    let quantity = row.getValue(columns[7]);
+                    let unit = row.getValue(columns[8]);
+                    let unitabbreviation = row.getValue(columns[9]);
+                    let account = row.getValue(columns[10]);
+                    let account_name = row.getText(columns[10]);
+                    let debitamount = row.getValue(columns[11]);
 
                     // Insertar informacion en array
                     data.push({
@@ -567,9 +587,12 @@ define(['./Bio.Library.Helper', 'N'],
                         emision_orden_produccion_numero: work_order_issue_number,
                         codigo: item,
                         codigo_nombre: item_name,
+                        descripcion: displayname,
                         linea: line,
                         linea_nombre: line_name,
                         cantidad: quantity,
+                        unidades: unit,
+                        unidades_abreviacion: unitabbreviation,
                         cuenta: account,
                         cuenta_nombre: account_name,
                         importe_debito: debitamount,
@@ -589,16 +612,19 @@ define(['./Bio.Library.Helper', 'N'],
 
         function getDataOT_DatosProduccion(subsidiary, dateFrom, dateTo, dataOT) {
 
-            // Obtener los ID Interno de las Ordenes de Trabajo
-            let id_interno = [];
-            dataOT.forEach(element => {
-                id_interno.push(element.id_interno)
-            });
-            // objHelper.error_log('', id_interno);
-
             // Declarar variables
             let result = {};
             let data = [];
+
+            // Obtener los ID Interno de las Ordenes de Trabajo
+            let id_interno = ["@NONE@"];
+            if (dataOT.length > 0) {
+                id_interno = [];
+                dataOT.forEach(element => {
+                    id_interno.push(element.id_interno)
+                });
+            }
+            // objHelper.error_log('', id_interno);
 
             // Crear search
             let searchContext = search.create({

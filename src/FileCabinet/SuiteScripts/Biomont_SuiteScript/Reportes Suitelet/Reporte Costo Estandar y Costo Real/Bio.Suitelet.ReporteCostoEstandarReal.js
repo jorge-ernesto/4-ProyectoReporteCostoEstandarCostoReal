@@ -86,11 +86,11 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
             });
 
             // Obtener datos
-            let { today, firstDayOfMonth } = objHelper.getDate();
+            let { today, firstDayOfMonth, firstDayOfMonthPast, lastDayOfMonthPast, monthOfMonthPast } = objHelper.getDate();
             let { user } = objHelper.getUser();
             subsidiary = user.subsidiary;
-            dateFrom = firstDayOfMonth;
-            dateTo = today;
+            dateFrom = firstDayOfMonthPast;
+            dateTo = lastDayOfMonthPast;
             checkPaginate = 'F'
 
             // Setear datos al formulario
@@ -360,6 +360,7 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
                 current.push(element.fec);
                 current.push(element.fec_ini_prod);
                 current.push(element.fec_fin_prod);
+                current.push(element.fec_cie_prod);
                 current.push(element.fec_cos_est);
                 current.push(element.centro_costo);
                 current.push(element.codigo_oracle);
@@ -403,7 +404,7 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
                 encoding: file.Encoding.UTF_8,
             });
 
-            return { csvFile, typeRep, titleDocument };
+            return { csvFile, titleDocument };
         }
 
         // Enviar email
@@ -424,6 +425,25 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
                 message: 'Se envio el archivo CSV a su correo.',
                 duration: 25000 // 25 segundos
             });
+        }
+
+        // Validar cantidad de registros
+        function validarCantidadRegistros(form, scriptContext, dataValidar, recomendacion) {
+            let cantidad = 0;
+            dataValidar.forEach(element => {
+                cantidad += element.length;
+            });
+
+            if (cantidad > 4000) {
+                form.addPageInitMessage({
+                    type: message.Type.WARNING,
+                    message: `La cantidad de registros supera los 4000 registros. Se recomienda usar la opción ${recomendacion}. Cantidad de registros: ${cantidad}.`,
+                    duration: 25000 // 25 segundos
+                });
+                scriptContext.response.writePage(form);
+                return true;
+            }
+            return false;
         }
 
         /******************/
@@ -464,10 +484,15 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
                     let dataOT_RegistrosRelacionados = objSearch.getDataOT_RegistrosRelacionados(subsidiary, dataOTByFecha['data']);
                     let dataOT_EmisionesOrdenesProduccion = objSearch.getDataOT_EmisionesOrdenesProduccion(subsidiary, dataOT_RegistrosRelacionados['data'])
                     let dataOT_DatosProduccion = objSearch.getDataOT_DatosProduccion(subsidiary, dateFrom, dateTo, dataOT['data']);
-                    let dataOT_Completo = objProcess.getDataOT_Completo(dataOT['data'], dataRevaluacion['data'], dataOT_RegistrosRelacionados['data'], dataOT_EmisionesOrdenesProduccion['data'], dataOT_DatosProduccion['data']);
+                    let dataOT_Completo = objProcess.getDataOT_Completo(dataOT['data'], dataRevaluacion['data'], dataOT_RegistrosRelacionados['data'], dataOT_EmisionesOrdenesProduccion['data'], dataOT_DatosProduccion['data'], eliminar_datos = true);
 
                     // Procesar reporte
                     let dataReporte = dataOT_Completo
+
+                    // Validar cantidad de registros
+                    let dataValidar = [dataReporte];
+                    let recomendacion = 'Excel o CSV'
+                    if (validarCantidadRegistros(form, scriptContext, dataValidar, recomendacion) == true) return;
 
                     // Crear sublista
                     createSublist(form, dataReporte, checkPaginate);
@@ -485,7 +510,7 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
                     let dataOT_RegistrosRelacionados = objSearch.getDataOT_RegistrosRelacionados(subsidiary, dataOTByFecha['data']);
                     let dataOT_EmisionesOrdenesProduccion = objSearch.getDataOT_EmisionesOrdenesProduccion(subsidiary, dataOT_RegistrosRelacionados['data'])
                     let dataOT_DatosProduccion = objSearch.getDataOT_DatosProduccion(subsidiary, dateFrom, dateTo, dataOT['data']);
-                    let dataOT_Completo = objProcess.getDataOT_Completo(dataOT['data'], dataRevaluacion['data'], dataOT_RegistrosRelacionados['data'], dataOT_EmisionesOrdenesProduccion['data'], dataOT_DatosProduccion['data']);
+                    let dataOT_Completo = objProcess.getDataOT_Completo(dataOT['data'], dataRevaluacion['data'], dataOT_RegistrosRelacionados['data'], dataOT_EmisionesOrdenesProduccion['data'], dataOT_DatosProduccion['data'], eliminar_datos = true);
 
                     // Procesar reporte
                     let dataReporte = objProcess.getReporte_CSV_Excel(dataOT_Completo);

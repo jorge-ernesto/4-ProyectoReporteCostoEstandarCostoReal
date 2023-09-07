@@ -29,13 +29,12 @@ define(['./Bio.Library.Helper', 'N'],
             return data;
         }
 
-        function getDataOT_Completo(dataOT, dataRevaluacion, dataOT_RegistrosRelacionados, dataOT_EmisionesOrdenesProduccion, dataOT_DatosProduccion) {
+        function getDataOT_Completo(dataOT, dataRevaluacion, dataOT_RegistrosRelacionados, dataOT_EmisionesOrdenesProduccion, dataOT_DatosProduccion, eliminar_datos = true) {
 
             // objHelper.error_log('getDataOT_Completo', [dataOT, dataRevaluacion, dataOT_RegistrosRelacionados, dataOT_EmisionesOrdenesProduccion, dataOT_DatosProduccion])
 
             let calcular_costo_real_md = true;
             let calcular_costo_real_mod_srv = true;
-            let eliminar_datos = true;
 
             // --- OBTENER COSTO REAL MD (MP, MV, ME) ---
             if (calcular_costo_real_md) {
