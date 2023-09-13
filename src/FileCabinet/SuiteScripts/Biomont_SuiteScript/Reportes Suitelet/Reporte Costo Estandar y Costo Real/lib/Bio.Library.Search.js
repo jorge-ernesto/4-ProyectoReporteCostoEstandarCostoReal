@@ -761,6 +761,114 @@ define(['./Bio.Library.Helper', 'N'],
             return array_where_lotes;
         }
 
-        return { getDataOTByFecha, getDataOTByLote, getDataRevaluacion, getDataOT_RegistrosRelacionados, getDataOT_EmisionesOrdenesProduccion, getDataOT_DatosProduccion }
+        function getDataReporteGastos_Cuentas6168(subsidiary, anio, mes) {
+
+            // Declarar variables
+            let result = {};
+            let data = [];
+
+            // Filtro de subsidiary
+            let array_where_subsidiary = ["subsidiary", "anyof", "@NONE@"];
+            if (subsidiary != '') {
+                array_where_subsidiary = ["subsidiary", "anyof", subsidiary];
+            }
+
+            // Período contable Nombre
+            let array_mes = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+            anio = (anio < 10) ? `0${anio}` : `${anio}`;
+            let periodo = `${array_mes[mes]} ${anio}`;
+            // objHelper.error_log('', periodo);
+
+            // Declarar search
+            let searchObject = {
+                type: "transaction",
+                columns: [
+                    search.createColumn({
+                        name: "number",
+                        join: "account",
+                        sort: search.Sort.ASC,
+                        label: "Cuenta : Número"
+                    }),
+                    search.createColumn({ name: "grossamount", label: "Importe (bruto)" }),
+                    search.createColumn({
+                        name: "internalid",
+                        join: "class",
+                        label: "Centro de Costo : ID interno"
+                    }),
+                    search.createColumn({
+                        name: "name",
+                        join: "class",
+                        label: "Centro de Costo : Nombre"
+                    }),
+                    search.createColumn({
+                        name: "periodname",
+                        join: "accountingPeriod",
+                        label: "Período contable : Nombre"
+                    }),
+                    search.createColumn({ name: "subsidiary", label: "Subsidiaria" }),
+                ],
+                filters: [
+                    // Filtros por defecto
+                    [["account.number", "startswith", "61"], "OR", ["account.number", "startswith", "62"], "OR", ["account.number", "startswith", "63"], "OR", ["account.number", "startswith", "64"], "OR", ["account.number", "startswith", "65"], "OR", ["account.number", "startswith", "66"], "OR", ["account.number", "startswith", "68"], "OR", ["account.number", "startswith", "60"]],
+                    "AND",
+                    ["account.number", "isnot", "60991111"],
+                    "AND",
+                    ["type", "noneof", "PurchOrd", "PurchReq"],
+                    "AND",
+                    ["formulatext: CASE\tWHEN TO_CHAR({number}) = 'Memorized' THEN '0'\tWHEN TO_CHAR({number}) = 'Memorizado' THEN '0'\tELSE '1'END", "is", "1"],
+                    // Filtros adicionales
+                    "AND",
+                    array_where_subsidiary,
+                    "AND",
+                    ["accountingperiod.periodname", "startswith", periodo]
+                ],
+            };
+
+            // Crear search
+            let searchContext = search.create(searchObject);
+
+            // Cantidad de registros en search
+            // let count = searchContext.runPaged().count;
+            // log.debug('', 'getDataReporteGastos_Cuentas6168');
+            // log.debug('', count);
+
+            // Recorrer search - con mas de 4000 registros
+            let pageData = searchContext.runPaged({ pageSize: 1000 }); // El minimo de registros que se puede traer por pagina es 50, pondremos 1000 para que en el caso existan 4500 registros, hayan 5 paginas como maximo y no me consuma mucha memoria
+
+            pageData.pageRanges.forEach(function (pageRange) {
+                var myPage = pageData.fetch({ index: pageRange.index });
+                myPage.data.forEach((row) => {
+                    // Obtener informacion
+                    let { columns } = row;
+                    let cuenta_numero = row.getValue(columns[0]);
+                    let importe_bruto = row.getValue(columns[1]);
+                    let centro_costo = row.getValue(columns[2]);
+                    let centro_costo_nombre = row.getValue(columns[3]);
+                    let periodo_contable_nombre = row.getValue(columns[4]);
+                    let subsidiaria = row.getValue(columns[5]);
+
+                    // Insertar informacion en array
+                    data.push({
+                        cuenta_numero: cuenta_numero,
+                        importe_bruto: importe_bruto,
+                        centro_costo: centro_costo,
+                        centro_costo_nombre: centro_costo_nombre,
+                        periodo_contable_nombre: periodo_contable_nombre,
+                        subsidiaria: subsidiaria,
+                    });
+                });
+            });
+
+            // Retornar informacion
+            result = {
+                data: data,
+            }
+            // log.debug('', 'getDataReporteGastos_Cuentas6168');
+            // log.debug('', result);
+            // objHelper.error_log('getDataReporteGastos_Cuentas6168', result);
+            return result;
+        }
+
+        return { getDataOTByFecha, getDataOTByLote, getDataRevaluacion, getDataOT_RegistrosRelacionados, getDataOT_EmisionesOrdenesProduccion, getDataOT_DatosProduccion, getDataReporteGastos_Cuentas6168 }
 
     });

@@ -26,7 +26,21 @@ define(['N'],
             let firstDayOfMonthPast = new Date(yearOfMonthPast, monthOfMonthPast, 1);
             let lastDayOfMonthPast = new Date(today.getFullYear(), today.getMonth(), 0);
 
-            return { today, firstDayOfMonth, firstDayOfMonthPast, lastDayOfMonthPast, monthOfMonthPast };
+            return { today, firstDayOfMonth, firstDayOfMonthPast, lastDayOfMonthPast, yearOfMonthPast, monthOfMonthPast };
+        }
+
+        function getYear() {
+            let result = [];
+            let today = new Date();
+            let year = today.getFullYear();
+
+            for (let i = year - 2; i <= year + 2; i++) {
+                result.push({
+                    id: i,
+                    name: i
+                });
+            }
+            return result;
         }
 
         function getMonth() {
@@ -38,7 +52,7 @@ define(['N'],
                 result.push({
                     id: value[i],
                     name: text[i],
-                })
+                });
             });
             return result;
         }
@@ -106,6 +120,6 @@ define(['N'],
             return !isNaN(n);
         }
 
-        return { getDate, getMonth, getUser, error_log, email_log, isNumeric }
+        return { getDate, getYear, getMonth, getUser, error_log, email_log, isNumeric }
 
     });
