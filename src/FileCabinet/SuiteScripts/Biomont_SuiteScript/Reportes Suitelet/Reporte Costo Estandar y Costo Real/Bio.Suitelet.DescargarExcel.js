@@ -6,9 +6,9 @@
  * @NApiVersion 2.1
  * @NScriptType Suitelet
  */
-define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', 'N'],
+define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Library.Helper', 'N'],
 
-    function (objSearch, objProcess, N) {
+    function (objSearch, objProcess, objHelper, N) {
 
         const { log, file, render, encode } = N;
 
@@ -81,11 +81,13 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', 'N'],
 
             if (scriptContext.request.method == 'GET') {
                 // Obtener datos por url
+                button = scriptContext.request.parameters['_button'];
                 subsidiary = scriptContext.request.parameters['_subsidiary'];
                 dateFrom = scriptContext.request.parameters['_start'];
                 dateTo = scriptContext.request.parameters['_end'];
 
-                if (scriptContext.request.parameters['_button'] == 'excel') {
+                if (button == 'excel') {
+
                     // Obtener datos por search
                     let dataOTByFecha = objSearch.getDataOTByFecha(subsidiary, dateFrom, dateTo);
                     let dataOT = objSearch.getDataOTByLote(subsidiary, dataOTByFecha['data']);
@@ -93,7 +95,21 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', 'N'],
                     let dataOT_RegistrosRelacionados = objSearch.getDataOT_RegistrosRelacionados(subsidiary, dataOTByFecha['data']);
                     let dataOT_EmisionesOrdenesProduccion = objSearch.getDataOT_EmisionesOrdenesProduccion(subsidiary, dataOT_RegistrosRelacionados['data'])
                     let dataOT_DatosProduccion = objSearch.getDataOT_DatosProduccion(subsidiary, dateFrom, dateTo, dataOT['data']);
-                    let dataOT_Completo = objProcess.getDataOT_Completo(dataOT['data'], dataRevaluacion['data'], dataOT_RegistrosRelacionados['data'], dataOT_EmisionesOrdenesProduccion['data'], dataOT_DatosProduccion['data'], eliminar_datos = true);
+                    let dataOT_Completo = objProcess.getDataOT_Completo(dataOT['data'], dataRevaluacion['data'], dataOT_RegistrosRelacionados['data'], dataOT_EmisionesOrdenesProduccion['data'], dataOT_DatosProduccion['data'], eliminar_datos = false);
+
+                    // Obtener factor CIF por meses y asignarlos a las OTs
+                    let fechas = objHelper.getDatesByOT(dataOT_Completo);
+                    let dataFactorCIF = {};
+                    fechas.forEach(element => {
+                        let year = element.year;
+                        let month = element.month;
+
+                        let dataReporteGastos_Cuentas6168 = objSearch.getDataReporteGastos_Cuentas6168(subsidiary, year, month);
+                        dataFactorCIF[year] = dataFactorCIF[year] || {};
+                        dataFactorCIF[year][month] = objProcess.getFactorCIFbyMonth(dataOT_Completo, dataReporteGastos_Cuentas6168['data'], { 'anio': year, 'mes': month });
+                    });
+                    dataOT_Completo = objProcess.asignarFactorCIFByOTs(dataOT_Completo, dataFactorCIF);
+                    // Cerrar Obtener factor CIF por meses y asignarlos a las OTs
 
                     // Procesar reporte
                     let dataReporte = objProcess.getReporte_CSV_Excel(dataOT_Completo);

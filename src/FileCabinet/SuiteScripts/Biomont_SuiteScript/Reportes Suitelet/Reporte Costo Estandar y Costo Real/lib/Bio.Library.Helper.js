@@ -57,6 +57,39 @@ define(['N'],
             return result;
         }
 
+        function getDatesByOT(dataReporte) {
+
+            let fechas = [];
+
+            dataReporte.forEach((value_rep, key_rep) => {
+
+                let datos_de_produccion = value_rep.datos_de_produccion || [];
+                datos_de_produccion.forEach((value_prod, key_prod) => {
+
+                    // Obtener informacion
+                    // Datos de Produccion
+                    let fec_cierre = value_prod.fecha;
+                    let anio = Number(fec_cierre.split('/')[2]);
+                    let mes = Number(fec_cierre.split('/')[1]) - 1;
+
+                    // Insertar informacion en array
+                    fechas.push({ year: anio, month: mes });
+                });
+            });
+
+            // Utilizamos un conjunto para almacenar objetos únicos
+            let conjuntoFechas = new Set(fechas.map(JSON.stringify));
+
+            // Convertimos el conjunto nuevamente en un array
+            let fechasUnicas = Array.from(conjuntoFechas, JSON.parse);
+
+            // Ordena el array por year y month y luego invierte el resultado
+            fechasUnicas.sort((a, b) => a.year - b.year || a.month - b.month).reverse();
+
+            // error_log('fechasUnicas', fechasUnicas);
+            return fechasUnicas;
+        }
+
         function getUser() {
             let user = runtime.getCurrentUser();
             return { user };
@@ -64,6 +97,18 @@ define(['N'],
 
         function error_log(title, data) {
             throw `${title} -- ${JSON.stringify(data)}`;
+        }
+
+        function error_log_by_lote(title, data, lotes = []) {
+            let json = [];
+            data.forEach(value_data => {
+                lotes.forEach(value_lotes => {
+                    if (value_data.lote == value_lotes) {
+                        json.push(value_data);
+                    }
+                });
+            });
+            throw `${title} -- ${JSON.stringify(json)}`;
         }
 
         function email_log(title, data) {
@@ -120,6 +165,6 @@ define(['N'],
             return !isNaN(n);
         }
 
-        return { getDate, getYear, getMonth, getUser, error_log, email_log, isNumeric }
+        return { getDate, getYear, getMonth, getDatesByOT, getUser, error_log, error_log_by_lote, email_log, isNumeric }
 
     });

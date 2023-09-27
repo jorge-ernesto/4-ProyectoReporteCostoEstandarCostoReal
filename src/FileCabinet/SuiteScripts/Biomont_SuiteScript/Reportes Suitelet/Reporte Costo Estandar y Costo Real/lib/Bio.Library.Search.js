@@ -440,32 +440,36 @@ define(['./Bio.Library.Helper', 'N'],
             // log.debug('', 'getDataOT_RegistrosRelacionados');
             // log.debug('', count);
 
-            // Recorrer search
-            searchContext.run().each(node => {
-                // Obtener informacion
-                let columns = node.columns;
-                let orden_trabajo_id_interno = node.getValue(columns[0]); // ID Interno
-                let orden_trabajo_numero = node.getValue(columns[1]); // Nro OT
-                // let lote = node.getValue(columns[2]); // Lote
-                let related_record_date = node.getValue(columns[3]); // Related Records : DATE
-                let related_record_type = node.getValue(columns[4]); // Related Records : TYPE
-                let related_record_typecode = node.getValue(columns[5]); // Related Records : TYPECODE
-                let related_record_internal_id = node.getValue(columns[6]); // Related Records : INTERNAL ID
-                let related_record_number = node.getValue(columns[7]); // Related Records : NUMBER
+            // Recorrer search - con mas de 4000 registros
+            let pageData = searchContext.runPaged({ pageSize: 1000 }); // El minimo de registros que se puede traer por pagina es 50, pondremos 1000 para que en el caso existan 4500 registros, hayan 5 paginas como maximo y no me consuma mucha memoria
 
-                // Insertar informacion en array
-                data.push({
-                    orden_trabajo_id_interno: orden_trabajo_id_interno,
-                    orden_trabajo_numero: orden_trabajo_numero,
-                    // lote: lote,
-                    related_record_date: related_record_date,
-                    related_record_type: related_record_type,
-                    related_record_typecode: related_record_typecode,
-                    related_record_internal_id: related_record_internal_id,
-                    related_record_number: related_record_number
+            pageData.pageRanges.forEach(function (pageRange) {
+                var myPage = pageData.fetch({ index: pageRange.index });
+                myPage.data.forEach((row) => {
+                    // Obtener informacion
+                    let { columns } = row;
+                    let orden_trabajo_id_interno = row.getValue(columns[0]); // ID Interno
+                    let orden_trabajo_numero = row.getValue(columns[1]); // Nro OT
+                    // let lote = row.getValue(columns[2]); // Lote
+                    let related_record_date = row.getValue(columns[3]); // Related Records : DATE
+                    let related_record_type = row.getValue(columns[4]); // Related Records : TYPE
+                    let related_record_typecode = row.getValue(columns[5]); // Related Records : TYPECODE
+                    let related_record_internal_id = row.getValue(columns[6]); // Related Records : INTERNAL ID
+                    let related_record_number = row.getValue(columns[7]); // Related Records : NUMBER
+
+                    // Insertar informacion en array
+                    data.push({
+                        orden_trabajo_id_interno: orden_trabajo_id_interno,
+                        orden_trabajo_numero: orden_trabajo_numero,
+                        // lote: lote,
+                        related_record_date: related_record_date,
+                        related_record_type: related_record_type,
+                        related_record_typecode: related_record_typecode,
+                        related_record_internal_id: related_record_internal_id,
+                        related_record_number: related_record_number
+                    });
                 });
-                return true; // La funcion each debes indicarle si quieres que siga iterando o no
-            })
+            });
 
             // Retornar informacion
             result = {
@@ -499,8 +503,8 @@ define(['./Bio.Library.Helper', 'N'],
             }
             // objHelper.error_log('', array_registros_relacionados_id_interno);
 
-            // Crear search
-            let searchContext = search.create({
+            // Declarar search
+            let searchObject = {
                 type: 'workorderissue',
                 columns: [
                     search.createColumn({
@@ -548,7 +552,10 @@ define(['./Bio.Library.Helper', 'N'],
                     "AND",
                     ["debitamount", "isnotempty", ""]
                 ],
-            });
+            };
+
+            // Crear search
+            let searchContext = search.create(searchObject);
 
             // Cantidad de registros en search
             // let count = searchContext.runPaged().count;
@@ -779,6 +786,10 @@ define(['./Bio.Library.Helper', 'N'],
             let periodo = `${array_mes[mes]} ${anio}`;
             // objHelper.error_log('', periodo);
 
+            // Centro de Costo
+            let centro_costo_array = ['8', '9', '10', '11', '12', '32', '13'];
+            let centro_costo_nombre_array = ['PRODUCCIÓN : 2211 INYECTABLES', 'PRODUCCIÓN : 2221 SEMISOLIDOS', 'PRODUCCIÓN : 2231 LIQUIDOS', 'PRODUCCIÓN : 2241 SOLUCIONES TOPICAS', 'PRODUCCIÓN : 2251 SOLIDOS', 'PRODUCCIÓN : 2261 POLVOS', 'PRODUCCIÓN : 2271 ACONDICIONADO'];
+
             // Declarar search
             let searchObject = {
                 type: "transaction",
@@ -809,18 +820,37 @@ define(['./Bio.Library.Helper', 'N'],
                 ],
                 filters: [
                     // Filtros por defecto
-                    [["account.number", "startswith", "61"], "OR", ["account.number", "startswith", "62"], "OR", ["account.number", "startswith", "63"], "OR", ["account.number", "startswith", "64"], "OR", ["account.number", "startswith", "65"], "OR", ["account.number", "startswith", "66"], "OR", ["account.number", "startswith", "68"], "OR", ["account.number", "startswith", "60"]],
+                    [
+                        ["account.number", "startswith", "61"], "OR",
+                        ["account.number", "startswith", "62131113"], "OR", // Eliminar todas las cuentas que comienzan con 62, excepto 62131113
+                        ["account.number", "startswith", "63"], "OR",
+                        ["account.number", "startswith", "64"], "OR",
+                        ["account.number", "startswith", "65"], "OR",
+                        ["account.number", "startswith", "66"], "OR",
+                        ["account.number", "startswith", "68"], "OR",
+                        ["account.number", "startswith", "60"]
+                    ],
                     "AND",
                     ["account.number", "isnot", "60991111"],
                     "AND",
                     ["type", "noneof", "PurchOrd", "PurchReq"],
                     "AND",
                     ["formulatext: CASE\tWHEN TO_CHAR({number}) = 'Memorized' THEN '0'\tWHEN TO_CHAR({number}) = 'Memorizado' THEN '0'\tELSE '1'END", "is", "1"],
+
                     // Filtros adicionales
                     "AND",
-                    array_where_subsidiary,
+                    array_where_subsidiary, // Subsidiaria a buscar
                     "AND",
-                    ["accountingperiod.periodname", "startswith", periodo]
+                    ["accountingperiod.periodname", "startswith", periodo], // Período contable a buscar
+
+                    // Filtros que realiza el Area Contable
+                    // Centros de costos: 2211, 2221, 2231, 2241, 2251, 2261, 2271
+                    // Eliminar todas las cuentas que comienzan con 62, excepto 62131113
+                    // Eliminar toda la cuenta 63311115
+                    "AND",
+                    ["class.internalid", "anyof"].concat(centro_costo_array),
+                    "AND",
+                    ["account.number", "isnot", "63311115"]
                 ],
             };
 

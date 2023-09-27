@@ -470,7 +470,8 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
                 let dateTo = scriptContext.request.parameters['_end'];
                 let checkPaginate = scriptContext.request.parameters['_paginate'];
 
-                if (button == 'consultar') {
+                if (button == 'consultar' || button == 'csv') {
+
                     // Setear datos al formulario
                     fieldSubsidiary.defaultValue = subsidiary;
                     fieldDateFrom.defaultValue = dateFrom;
@@ -484,42 +485,51 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
                     let dataOT_RegistrosRelacionados = objSearch.getDataOT_RegistrosRelacionados(subsidiary, dataOTByFecha['data']);
                     let dataOT_EmisionesOrdenesProduccion = objSearch.getDataOT_EmisionesOrdenesProduccion(subsidiary, dataOT_RegistrosRelacionados['data'])
                     let dataOT_DatosProduccion = objSearch.getDataOT_DatosProduccion(subsidiary, dateFrom, dateTo, dataOT['data']);
-                    let dataOT_Completo = objProcess.getDataOT_Completo(dataOT['data'], dataRevaluacion['data'], dataOT_RegistrosRelacionados['data'], dataOT_EmisionesOrdenesProduccion['data'], dataOT_DatosProduccion['data'], eliminar_datos = true);
+                    let dataOT_Completo = objProcess.getDataOT_Completo(dataOT['data'], dataRevaluacion['data'], dataOT_RegistrosRelacionados['data'], dataOT_EmisionesOrdenesProduccion['data'], dataOT_DatosProduccion['data'], eliminar_datos = false);
 
-                    // Procesar reporte
-                    let dataReporte = dataOT_Completo
+                    // Obtener factor CIF por meses y asignarlos a las OTs
+                    let fechas = objHelper.getDatesByOT(dataOT_Completo);
+                    let dataFactorCIF = {};
+                    fechas.forEach(element => {
+                        let year = element.year;
+                        let month = element.month;
 
-                    // Validar cantidad de registros
-                    let dataValidar = [dataReporte];
-                    let recomendacion = 'Excel o CSV'
-                    if (validarCantidadRegistros(form, scriptContext, dataValidar, recomendacion) == true) return;
+                        let dataReporteGastos_Cuentas6168 = objSearch.getDataReporteGastos_Cuentas6168(subsidiary, year, month);
+                        dataFactorCIF[year] = dataFactorCIF[year] || {};
+                        dataFactorCIF[year][month] = objProcess.getFactorCIFbyMonth(dataOT_Completo, dataReporteGastos_Cuentas6168['data'], { 'anio': year, 'mes': month });
+                    });
+                    dataOT_Completo = objProcess.asignarFactorCIFByOTs(dataOT_Completo, dataFactorCIF);
+                    // Cerrar Obtener factor CIF por meses y asignarlos a las OTs
 
-                    // Crear sublista
-                    createSublist(form, dataReporte, checkPaginate);
-                } else if (button == 'csv') {
-                    // Setear datos al formulario
-                    fieldSubsidiary.defaultValue = subsidiary;
-                    fieldDateFrom.defaultValue = dateFrom;
-                    fieldDateTo.defaultValue = dateTo;
-                    fieldCheckPaginate.defaultValue = checkPaginate;
+                    // Debug
+                    // objHelper.error_log('', fechas);
+                    // objHelper.error_log('', dataFactorCIF);
+                    // objHelper.error_log('', dataOT_Completo);
+                    // objHelper.error_log_by_lote('', dataOT_Completo, ['072823', '062333', '072953']);
 
-                    // Obtener datos por search
-                    let dataOTByFecha = objSearch.getDataOTByFecha(subsidiary, dateFrom, dateTo);
-                    let dataOT = objSearch.getDataOTByLote(subsidiary, dataOTByFecha['data']);
-                    let dataRevaluacion = objSearch.getDataRevaluacion(subsidiary);
-                    let dataOT_RegistrosRelacionados = objSearch.getDataOT_RegistrosRelacionados(subsidiary, dataOTByFecha['data']);
-                    let dataOT_EmisionesOrdenesProduccion = objSearch.getDataOT_EmisionesOrdenesProduccion(subsidiary, dataOT_RegistrosRelacionados['data'])
-                    let dataOT_DatosProduccion = objSearch.getDataOT_DatosProduccion(subsidiary, dateFrom, dateTo, dataOT['data']);
-                    let dataOT_Completo = objProcess.getDataOT_Completo(dataOT['data'], dataRevaluacion['data'], dataOT_RegistrosRelacionados['data'], dataOT_EmisionesOrdenesProduccion['data'], dataOT_DatosProduccion['data'], eliminar_datos = true);
+                    if (button == 'consultar') {
 
-                    // Procesar reporte
-                    let dataReporte = objProcess.getReporte_CSV_Excel(dataOT_Completo);
+                        // Procesar reporte
+                        let dataReporte = dataOT_Completo
 
-                    // Crear csv
-                    let { csvFile, titleDocument } = createCSV(dataReporte, dateFrom, dateTo);
+                        // Validar cantidad de registros
+                        let dataValidar = [dataReporte];
+                        let recomendacion = 'Excel o CSV'
+                        if (validarCantidadRegistros(form, scriptContext, dataValidar, recomendacion) == true) return;
 
-                    // Enviar email
-                    sendEmail(csvFile, titleDocument, form);
+                        // Crear sublista
+                        createSublist(form, dataReporte, checkPaginate);
+                    } else if (button == 'csv') {
+
+                        // Procesar reporte
+                        let dataReporte = objProcess.getReporte_CSV_Excel(dataOT_Completo);
+
+                        // Crear csv
+                        let { csvFile, titleDocument } = createCSV(dataReporte, dateFrom, dateTo);
+
+                        // Enviar email
+                        sendEmail(csvFile, titleDocument, form);
+                    }
                 }
 
                 // Renderizar formulario
