@@ -140,7 +140,7 @@ define(['./Bio.Library.Helper', 'N'],
             };
 
             // Filtro de lotes
-            if (dataOTByFecha.length <= 0) {
+            if (Object.keys(dataOTByFecha).length <= 0) {
                 searchObject.filters.push('AND');
                 searchObject.filters.push(['custbodybio_cam_lote', 'is', '']);
             } else {
@@ -243,12 +243,12 @@ define(['./Bio.Library.Helper', 'N'],
                     search.createColumn({
                         name: "memo",
                         summary: "MAX",
-                        label: "Memo"
+                        label: "Nota"
                     }),
                     search.createColumn({
                         name: "location",
                         summary: "MAX",
-                        label: "Location"
+                        label: "Almacén"
                     }),
                     search.createColumn({
                         name: "item",
@@ -423,7 +423,7 @@ define(['./Bio.Library.Helper', 'N'],
             };
 
             // Filtro de lotes
-            if (dataOTByFecha.length <= 0) {
+            if (Object.keys(dataOTByFecha).length <= 0) {
                 searchObject.filters.push('AND');
                 searchObject.filters.push(['custbodybio_cam_lote', 'is', '']);
             } else {
@@ -493,9 +493,9 @@ define(['./Bio.Library.Helper', 'N'],
                 array_where_subsidiary = ["subsidiary", "anyof", subsidiary];
             }
 
-            // Obtener los ID de registros relacionados
+            // Filtro de ID Interno de registros relacionados
             let array_registros_relacionados_id_interno = ["internalid", "anyof", "@NONE@"];
-            if (dataOT_RegistrosRelacionados.length > 0) {
+            if (Object.keys(dataOT_RegistrosRelacionados).length > 0) {
                 array_registros_relacionados_id_interno = ["internalid", "anyof"];
                 dataOT_RegistrosRelacionados.forEach(element => {
                     array_registros_relacionados_id_interno.push(element.related_record_internal_id)
@@ -623,9 +623,9 @@ define(['./Bio.Library.Helper', 'N'],
             let result = {};
             let data = [];
 
-            // Obtener los ID Interno de las Ordenes de Trabajo
+            // Filtro de ID Interno de Ordenes de Trabajo
             let id_interno = ["@NONE@"];
-            if (dataOT.length > 0) {
+            if (Object.keys(dataOT).length > 0) {
                 id_interno = [];
                 dataOT.forEach(element => {
                     id_interno.push(element.id_interno)
@@ -738,7 +738,7 @@ define(['./Bio.Library.Helper', 'N'],
 
         function getFilterLote(dataOTByFecha) {
 
-            // Obtener lotes en un nuevo array
+            // Obtener lotes
             let data_lotes = [];
             dataOTByFecha.forEach(element => {
                 data_lotes.push(element.lote);

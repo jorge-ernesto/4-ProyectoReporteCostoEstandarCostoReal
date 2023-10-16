@@ -8,24 +8,21 @@ define(['./Bio.Library.Helper', 'N'],
 
         function agruparRevaluacion(dataRevaluacion) {
 
-            // JSON donde guardaremos la informacion
-            let data = {
+            // Obtener revaluacion en formato agrupado por articulo
+            let data = { // * Audit: Util, manejo de JSON
                 'items': {}
             };
 
-            // Recorrer data
             dataRevaluacion.forEach(element => {
-                // Obtener valor por el que agrupar
-                const key = element.item;
 
-                // Si no existe indice en JSON
-                data['items'][key] = data['items'][key] || [];
+                // Obtener variables
+                let item = element.item;
 
-                // Insertar infromacion en JSON
-                data['items'][key].push(element);
+                // Agrupar revaluaciones por articulo
+                data['items'][item] = data['items'][item] || []; // * Audit, manejo de Array
+                data['items'][item].push(element);
             });
 
-            // Retornar informacion
             return data;
         }
 
@@ -39,7 +36,7 @@ define(['./Bio.Library.Helper', 'N'],
 
             // ---- OBTENER COSTO REAL MD (MP, MV, ME) ----
             if (calcular_costo_real_md) {
-                // RECORRER ORDENES DE TRABAJO PARA AGREGAR -- REVALUACIONES DE INVENTARIO
+                // RECORRER ORDENES DE TRABAJO -- PARA AGREGAR REVALUACIONES DE INVENTARIO
                 let dataRevaluacion_ = agruparRevaluacion(dataRevaluacion);
 
                 dataOT.forEach((value_ot, key_ot) => {
@@ -63,7 +60,7 @@ define(['./Bio.Library.Helper', 'N'],
                     }
                 });
 
-                // RECORRER LOS REGISTROS RELACIONADOS (EMISIONES DE ORDENES DE PRODUCCION) DE LAS ORDENES DE TRABAJO PARA AGREGAR -- LA INFORMACION DE IMPACTO EN LM
+                // RECORRER LOS REGISTROS RELACIONADOS (EMISIONES DE ORDENES DE PRODUCCION) DE LAS ORDENES DE TRABAJO -- PARA AGREGAR LA INFORMACION DE IMPACTO EN LM
                 dataOT_RegistrosRelacionados.forEach((value_regrel, key_regrel) => {
                     dataOT_EmisionesOrdenesProduccion.forEach((value_emi, key_emi) => {
                         if (value_regrel.related_record_number == value_emi.emision_orden_produccion_numero && value_regrel.related_record_typecode == 'WOIssue') {
@@ -73,7 +70,7 @@ define(['./Bio.Library.Helper', 'N'],
                     });
                 });
 
-                // RECORRER ORDENES DE TRABAJO PARA AGREGAR -- REGISTROS RELACIONADOS (EMISIONES DE ORDENES DE PRODUCCION)
+                // RECORRER ORDENES DE TRABAJO -- PARA AGREGAR REGISTROS RELACIONADOS (EMISIONES DE ORDENES DE PRODUCCION)
                 dataOT.forEach((value_ot, key_ot) => {
                     dataOT_RegistrosRelacionados.forEach((value_regrel, key_regrel) => {
                         if (value_ot.orden_trabajo == value_regrel.orden_trabajo_numero && value_regrel.related_record_typecode == 'WOIssue') {
@@ -83,7 +80,7 @@ define(['./Bio.Library.Helper', 'N'],
                     });
                 });
 
-                // RECORRER ORDENES DE TRABAJO PARA AGREGAR -- REGISTROS RELACIONADOS (FECHA DE CIERRE DE ORDEN DE PRODUCCION)
+                // RECORRER ORDENES DE TRABAJO -- PARA AGREGAR REGISTROS RELACIONADOS (FECHA DE CIERRE DE ORDEN DE PRODUCCION)
                 dataOT.forEach((value_ot, key_ot) => {
                     dataOT_RegistrosRelacionados.forEach((value_regrel, key_regrel) => {
                         if (value_ot.orden_trabajo == value_regrel.orden_trabajo_numero && value_regrel.related_record_typecode == 'WOClose') {
@@ -198,7 +195,7 @@ define(['./Bio.Library.Helper', 'N'],
 
             // ---- OBTENER COSTO REAL MOD y SRV ----
             if (calcular_costo_real_mod_srv) {
-                // RECORRER ORDENES DE TRABAJO PARA AGREGAR -- DATOS DE PRODUCCION
+                // RECORRER ORDENES DE TRABAJO -- PARA AGREGAR DATOS DE PRODUCCION
                 dataOT.forEach((value_ot, key_ot) => {
                     dataOT_DatosProduccion.forEach((value_prod, key_prod) => {
                         if (value_ot.id_interno == value_prod.orden_trabajo) {
@@ -296,10 +293,11 @@ define(['./Bio.Library.Helper', 'N'],
 
             // ---- OBTENER COSTO REAL CIF ----
             if (calcular_costo_cif) {
-                // RECORRER ORDENES DE TRABAJO PARA AGREGAR -- LINEA DE ORDEN DE TRABAJO (TIPO DE ORDEN DE TRABAJO: ENVASADO Y EMPACADO)
+                // RECORRER ORDENES DE TRABAJO -- PARA AGREGAR LINEA DE ORDEN DE TRABAJO (TIPO DE ORDEN DE TRABAJO: ENVASADO Y EMPACADO)
                 let dataReporte = dataOT;
                 let dataReporte_ = dataOT;
                 dataReporte.forEach((value_rep, key_rep) => {
+                    // SI ES TIPO DE ORDEN DE TRABAJO: FABRICACION -- ASIGNA LINEA DE TIPO DE ORDEN DE TRABAJO: ENVASADO Y EMPACADO
                     if (value_rep.tipo_orden_trabajo == '1' || value_rep.tipo_orden_trabajo_nombre == 'FABRICACIÓN') {
 
                         dataReporte_.forEach((value_rep_, key_rep_) => {
@@ -309,12 +307,21 @@ define(['./Bio.Library.Helper', 'N'],
                                 dataReporte[key_rep]['linea_nombre_ot_envasado_empacado'] = value_rep_.linea_nombre;
                             }
                         });
-                    } else if (value_rep.tipo_orden_trabajo == '3' || value_rep.tipo_orden_trabajo_nombre == 'ENVASADO Y EMPACADO') {
+
+                        // VALIDACION ADICIONAL POR EL CASO DE LA OT: 002386 CON LOTE: 083433
+                        // SI ES TIPO DE ORDEN DE TRABAJO: FABRICACION, Y TIENE LINEA: PRODUCTOS INTERMEDIOS POLVOS
+                        if (value_rep.linea == '48' || value_rep.linea_nombre == 'PRODUCTO INTERMEDIO POLVOS') {
+                            dataReporte[key_rep]['linea_ot_envasado_empacado'] = '2';
+                            dataReporte[key_rep]['linea_nombre_ot_envasado_empacado'] = 'POLVOS';
+                        }
+                    // SI ES TIPO DE ORDEN DE TRABAJO: ENVASADO Y EMPACADO -- ASIGNA SU PROPIA LINEA
+                    } else if (value_rep.tipo_orden_trabajo == '3' || value_rep.tipo_orden_trabajo_nombre == 'ENVASADO Y EMPACADO') { // PODRIA AGREGARSE 4 - REACONDICIONADO
 
                         dataReporte[key_rep]['linea_ot_envasado_empacado'] = value_rep.linea;
                         dataReporte[key_rep]['linea_nombre_ot_envasado_empacado'] = value_rep.linea_nombre;
 
                         // VALIDACION ADICIONAL POR EL CASO DE LA OT: 002285 CON LOTE: 083153
+                        // SI ES TIPO DE ORDEN DE TRABAJO: ENVASADO Y EMPACADO, Y TIENE LINEA: BULK Y PRODUCTOS INTERMEDIOS (SI TIENE LINEA: BULK Y PRODUCTOS INTERMEDIOS, DEBE SER TIPO DE ORDEN DE TRABAJO: FABRICACION, POR LO QUE ESTE CASO ES UN ERROR DE REGISTRO EN UNA OT)
                         if (value_rep.linea == '6' || value_rep.linea_nombre == 'BULK Y PRODUCTOS INTERMEDIOS') {
 
                             dataReporte_.forEach((value_rep_, key_rep_) => {
@@ -366,12 +373,12 @@ define(['./Bio.Library.Helper', 'N'],
                         let mes = fec_cierre.split('/')[1];
                         let estado = value_rep.estado;
 
-                        // Validar parametros para filtrar datos para obtener el factor del CIF por meses
+                        // Validar parametros para filtrar datos - para obtener factor CIF por año y mes
                         if (Object.keys(parameters).length > 0) {
 
                             // Filtrar por Fecha de Cierre y Estado
                             // En JavaScript, los meses se representan con valores enteros del 0 al 11, donde 0 es enero y 11 es diciembre.
-                            if (Number(anio) == Number(parameters.anio) && Number(mes) == Number(parameters.mes) + 1 && ['Cerrada', 'Closed', 'En curso', 'In Process'].includes(estado)) {
+                            if (Number(anio) == Number(parameters.anio) && Number(mes) == Number(parameters.mes) + 1 && ['Cerrada', 'Closed', 'En curso', 'In Process', 'Liberada', 'Released'].includes(estado)) {
 
                                 // Filtrar por Linea
                                 if (['1', '9', '3', '10', '11', '2'].includes(lin_id) || ['INYECTABLES', 'SEMISOLIDOS', 'LIQUIDOS', 'SOLUCIONES TOPICAS', 'SOLIDOS', 'POLVOS'].includes(lin)) {

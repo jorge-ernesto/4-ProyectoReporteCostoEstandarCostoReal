@@ -99,7 +99,7 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
 
                     // Obtener factor CIF por meses y asignarlos a las OTs
                     let fechas = objHelper.getDatesByOT(dataOT_Completo);
-                    let dataFactorCIF = {};
+                    let dataFactorCIF = {}; // * Audit: Util, manejo de JSON
                     fechas.forEach(element => {
                         let year = element.year;
                         let month = element.month;

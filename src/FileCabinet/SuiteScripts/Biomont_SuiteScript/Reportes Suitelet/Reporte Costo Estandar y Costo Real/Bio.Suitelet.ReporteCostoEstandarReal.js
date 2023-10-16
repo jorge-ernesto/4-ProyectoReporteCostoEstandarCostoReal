@@ -489,7 +489,7 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
 
                     // Obtener factor CIF por meses y asignarlos a las OTs
                     let fechas = objHelper.getDatesByOT(dataOT_Completo);
-                    let dataFactorCIF = {};
+                    let dataFactorCIF = {}; // * Audit: Util, manejo de JSON
                     fechas.forEach(element => {
                         let year = element.year;
                         let month = element.month;
@@ -505,7 +505,7 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
                     // objHelper.error_log('', fechas);
                     // objHelper.error_log('', dataFactorCIF);
                     // objHelper.error_log('', dataOT_Completo);
-                    // objHelper.error_log_by_lote('', dataOT_Completo, ['072823', '062333', '072953']);
+                    // objHelper.error_log_by_lote('', dataOT_Completo, ['083433']);
 
                     if (button == 'consultar') {
 
