@@ -95,7 +95,8 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
                     let dataOT_RegistrosRelacionados = objSearch.getDataOT_RegistrosRelacionados(subsidiary, dataOTByFecha['data']);
                     let dataOT_EmisionesOrdenesProduccion = objSearch.getDataOT_EmisionesOrdenesProduccion(subsidiary, dataOT_RegistrosRelacionados['data'])
                     let dataOT_DatosProduccion = objSearch.getDataOT_DatosProduccion(subsidiary, dateFrom, dateTo, dataOT['data']);
-                    let dataOT_Completo = objProcess.getDataOT_Completo(dataOT['data'], dataRevaluacion['data'], dataOT_RegistrosRelacionados['data'], dataOT_EmisionesOrdenesProduccion['data'], dataOT_DatosProduccion['data'], eliminar_datos = false);
+                    let dataConf_CentroCosto_Linea = objSearch.getDataConf_CentroCosto_Linea();
+                    let dataOT_Completo = objProcess.getDataOT_Completo(dataOT['data'], dataRevaluacion['data'], dataOT_RegistrosRelacionados['data'], dataOT_EmisionesOrdenesProduccion['data'], dataOT_DatosProduccion['data'], dataConf_CentroCosto_Linea['data']);
 
                     // Obtener factor CIF por meses y asignarlos a las OTs
                     let fechas = objHelper.getDatesByOT(dataOT_Completo);
@@ -110,6 +111,12 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
                     });
                     dataOT_Completo = objProcess.asignarFactorCIFByOTs(dataOT_Completo, dataFactorCIF);
                     // Cerrar Obtener factor CIF por meses y asignarlos a las OTs
+
+                    // Debug
+                    // objHelper.error_log('', fechas);
+                    // objHelper.error_log('', dataFactorCIF);
+                    // objHelper.error_log('', dataOT_Completo);
+                    // objHelper.error_log_by_lote('', dataOT_Completo, ['083433']);
 
                     // Procesar reporte
                     let dataReporte = objProcess.getReporte_CSV_Excel(dataOT_Completo);

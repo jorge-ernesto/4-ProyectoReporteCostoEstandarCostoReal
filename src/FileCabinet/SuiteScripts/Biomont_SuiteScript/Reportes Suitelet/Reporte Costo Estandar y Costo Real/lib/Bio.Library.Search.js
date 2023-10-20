@@ -106,6 +106,11 @@ define(['./Bio.Library.Helper', 'N'],
                     search.createColumn({ name: "custbody126", label: "FECHA DE INICIO DE LA PRODUCCIÓN" }),
                     search.createColumn({ name: "enddate", label: "FECHA DE FINALIZACIÓN DE PRODUCCION" }),
                     search.createColumn({ name: "class", label: "CENTRO DE COSTO" }),
+                    search.createColumn({
+                        name: "class",
+                        join: "item",
+                        label: "Centro de Costo"
+                    }),
                     search.createColumn({ name: "item", label: "CÓDIGO ORACLE" }),
                     search.createColumn({
                         name: "salesdescription",
@@ -169,15 +174,18 @@ define(['./Bio.Library.Helper', 'N'],
                 let fec = node.getValue(columns[4]); // FECHA
                 let fec_ini_prod = node.getValue(columns[5]); // FECHA DE INICIO DE LA PRODUCCIÓN
                 let fec_fin_prod = node.getValue(columns[6]); // FECHA DE FINALIZACIÓN DE PRODUCCION
-                let centro_costo = node.getText(columns[7]); // CENTRO DE COSTO
-                let codigo_oracle = node.getText(columns[8]); // CÓDIGO ORACLE
-                let descripcion = node.getValue(columns[9]); // DESCRIPCIÓN
-                let cantidad_construido = node.getValue(columns[10]); // CANTIDAD CONSTRUIDO / REAL
-                let linea = node.getValue(columns[11]); // LINEA
-                let linea_nombre = node.getText(columns[11]); // LINEA
-                let cantidad_teorica = node.getValue(columns[12]); // CANTIDAD TEORICA
-                let volumen = node.getValue(columns[13]); // VOLUMEN
-                let estado = node.getText(columns[14]); // ESTADO
+                let centro_costo = node.getValue(columns[7]); // CENTRO DE COSTO
+                let centro_costo_nombre = node.getText(columns[7]); // CENTRO DE COSTO
+                let ensamblaje_centro_costo = node.getValue(columns[8]); // ENSAMBLAJE - CENTRO DE COSTO
+                let ensamblaje_centro_costo_nombre = node.getText(columns[8]); // ENSAMBLAJE - CENTRO DE COSTO
+                let codigo_oracle = node.getText(columns[9]); // CÓDIGO ORACLE
+                let descripcion = node.getValue(columns[10]); // DESCRIPCIÓN
+                let cantidad_construido = node.getValue(columns[11]); // CANTIDAD CONSTRUIDO / REAL
+                let linea = node.getValue(columns[12]); // LINEA
+                let linea_nombre = node.getText(columns[12]); // LINEA
+                let cantidad_teorica = node.getValue(columns[13]); // CANTIDAD TEORICA
+                let volumen = node.getValue(columns[14]); // VOLUMEN
+                let estado = node.getText(columns[15]); // ESTADO
 
                 // Insertar informacion en array
                 data.push({
@@ -190,6 +198,9 @@ define(['./Bio.Library.Helper', 'N'],
                     fec_ini_prod: fec_ini_prod,
                     fec_fin_prod: fec_fin_prod,
                     centro_costo: centro_costo,
+                    centro_costo_nombre: centro_costo_nombre,
+                    ensamblaje_centro_costo: ensamblaje_centro_costo,
+                    ensamblaje_centro_costo_nombre: ensamblaje_centro_costo_nombre,
                     codigo_oracle: codigo_oracle,
                     descripcion: descripcion,
                     cantidad_construido: cantidad_construido,
@@ -736,6 +747,60 @@ define(['./Bio.Library.Helper', 'N'],
             return result;
         }
 
+        function getDataConf_CentroCosto_Linea() {
+            // Declarar variables
+            let result = {};
+            let data = [];
+
+            // Declarar search
+            let searchObject = {
+                type: 'customrecord_bio_conf_cencos_lin',
+                columns: [
+                    search.createColumn({ name: "internalid", label: "ID INTERNO" }),
+                    search.createColumn({ name: "custrecord_bio_centro_costo", label: "Centro Costo" }),
+                    search.createColumn({ name: "custrecord_bio_linea", label: "Linea" })
+                ]
+            };
+
+            // Crear search
+            let searchContext = search.create(searchObject);
+
+            // Cantidad de registros en search
+            // let count = searchContext.runPaged().count;
+            // log.debug('', 'getRecordConfiguracion_CentroCosto_Linea');
+            // log.debug('', count);
+
+            // Recorrer search
+            searchContext.run().each(node => {
+                // Obtener informacion
+                let columns = node.columns;
+                let id_interno = node.getValue(columns[0]); // ID INTERNO
+                let centro_costo = node.getValue(columns[1]); // ORDEN DE TRABAJO
+                let centro_costo_nombre = node.getText(columns[1]); // ORDEN DE TRABAJO
+                let linea = node.getValue(columns[2]); // LINEA
+                let linea_nombre = node.getText(columns[2]); // LINEA
+
+                // Insertar informacion en array
+                data.push({
+                    id_interno: id_interno,
+                    centro_costo: centro_costo,
+                    centro_costo_nombre: centro_costo_nombre,
+                    linea: linea,
+                    linea_nombre: linea_nombre,
+                });
+                return true; // La funcion each debes indicarle si quieres que siga iterando o no
+            })
+
+            // Retornar informacion
+            result = {
+                data: data
+            }
+            // log.debug('', 'getRecordConfiguracion_CentroCosto_Linea');
+            // log.debug('', result);
+            // objHelper.error_log('getRecordConfiguracion_CentroCosto_Linea', result);
+            return result;
+        }
+
         function getFilterLote(dataOTByFecha) {
 
             // Obtener lotes
@@ -899,6 +964,6 @@ define(['./Bio.Library.Helper', 'N'],
             return result;
         }
 
-        return { getDataOTByFecha, getDataOTByLote, getDataRevaluacion, getDataOT_RegistrosRelacionados, getDataOT_EmisionesOrdenesProduccion, getDataOT_DatosProduccion, getDataReporteGastos_Cuentas6168 }
+        return { getDataOTByFecha, getDataOTByLote, getDataRevaluacion, getDataOT_RegistrosRelacionados, getDataOT_EmisionesOrdenesProduccion, getDataOT_DatosProduccion, getDataConf_CentroCosto_Linea, getDataReporteGastos_Cuentas6168 }
 
     });

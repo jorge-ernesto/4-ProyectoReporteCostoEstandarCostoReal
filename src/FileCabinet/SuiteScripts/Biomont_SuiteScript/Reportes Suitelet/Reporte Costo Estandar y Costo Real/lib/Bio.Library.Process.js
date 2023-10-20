@@ -26,7 +26,7 @@ define(['./Bio.Library.Helper', 'N'],
             return data;
         }
 
-        function getDataOT_Completo(dataOT, dataRevaluacion, dataOT_RegistrosRelacionados, dataOT_EmisionesOrdenesProduccion, dataOT_DatosProduccion, eliminar_datos = true) {
+        function getDataOT_Completo(dataOT, dataRevaluacion, dataOT_RegistrosRelacionados, dataOT_EmisionesOrdenesProduccion, dataOT_DatosProduccion, dataConf_CentroCosto_Linea) {
 
             // objHelper.error_log('getDataOT_Completo', [dataOT, dataRevaluacion, dataOT_RegistrosRelacionados, dataOT_EmisionesOrdenesProduccion, dataOT_DatosProduccion])
 
@@ -34,7 +34,7 @@ define(['./Bio.Library.Helper', 'N'],
             let calcular_costo_real_mod_srv = true;
             let calcular_costo_cif = true;
 
-            // ---- OBTENER COSTO REAL MD (MP, MV, ME) ----
+            /****************** OBTENER COSTO REAL MD (MP, MV, ME) ******************/
             if (calcular_costo_real_md) {
                 // RECORRER ORDENES DE TRABAJO -- PARA AGREGAR REVALUACIONES DE INVENTARIO
                 let dataRevaluacion_ = agruparRevaluacion(dataRevaluacion);
@@ -193,7 +193,7 @@ define(['./Bio.Library.Helper', 'N'],
                 });
             }
 
-            // ---- OBTENER COSTO REAL MOD y SRV ----
+            /****************** OBTENER COSTO REAL MOD y SRV ******************/
             if (calcular_costo_real_mod_srv) {
                 // RECORRER ORDENES DE TRABAJO -- PARA AGREGAR DATOS DE PRODUCCION
                 dataOT.forEach((value_ot, key_ot) => {
@@ -284,15 +284,32 @@ define(['./Bio.Library.Helper', 'N'],
                 });
             }
 
-            // ---- ELIMINAR DATOS ----
-            if (eliminar_datos) {
+            /****************** ELIMINAR DATOS ******************/
+            if (false) {
                 dataOT.forEach((value_ot, key_ot) => {
                     dataOT[key_ot]['datos_de_produccion'] = []
                 });
             }
 
-            // ---- OBTENER COSTO REAL CIF ----
+            /****************** OBTENER COSTO REAL CIF ******************/
             if (calcular_costo_cif) {
+                // RECORRER ORDENES DE TRABAJO -- PARA AGREGAR LINEA DE ORDEN DE TRABAJO (TIPO DE ORDEN DE TRABAJO: ENVASADO Y EMPACADO)
+                dataOT.forEach((value_ot, key_ot) => {
+                    dataConf_CentroCosto_Linea.forEach((value_conf, key_conf) => {
+
+                        if (value_ot.tipo_orden_trabajo == '1' || value_ot.tipo_orden_trabajo_nombre == 'FABRICACIÓN' ||
+                            value_ot.tipo_orden_trabajo == '3' || value_ot.tipo_orden_trabajo_nombre == 'ENVASADO Y EMPACADO') {
+
+                            if (value_ot['ensamblaje_centro_costo'] == value_conf['centro_costo']) {
+                                dataOT[key_ot]['linea_ot_envasado_empacado'] = value_conf['linea'];
+                                dataOT[key_ot]['linea_nombre_ot_envasado_empacado'] = value_conf['linea_nombre'];
+                            }
+                        }
+                    });
+                });
+            }
+
+            if (!calcular_costo_cif) {
                 // RECORRER ORDENES DE TRABAJO -- PARA AGREGAR LINEA DE ORDEN DE TRABAJO (TIPO DE ORDEN DE TRABAJO: ENVASADO Y EMPACADO)
                 let dataReporte = dataOT;
                 let dataReporte_ = dataOT;
@@ -345,7 +362,7 @@ define(['./Bio.Library.Helper', 'N'],
 
             let calcular_costo_cif = true;
 
-            // ---- OBTENER COSTO REAL CIF ----
+            /****************** OBTENER COSTO REAL CIF ******************/
             if (calcular_costo_cif) {
                 // RECORRER ORDENES DE TRABAJARO PARA OBTENER:
                 let dataFactorCIF = {};
@@ -403,7 +420,7 @@ define(['./Bio.Library.Helper', 'N'],
                     });
                 });
 
-                /******************************************************/
+                /******************/
 
                 // RECORRER REPORTE DE GASTOS PARA OBTENER:
                 dataFactorCIF['total_cc_iny'] = 0;
@@ -479,7 +496,7 @@ define(['./Bio.Library.Helper', 'N'],
 
             let calcular_costo_cif = true;
 
-            // ---- OBTENER COSTO REAL CIF ----
+            /****************** OBTENER COSTO REAL CIF ******************/
             if (calcular_costo_cif) {
                 dataReporte.forEach((value_rep, key_rep) => {
 
