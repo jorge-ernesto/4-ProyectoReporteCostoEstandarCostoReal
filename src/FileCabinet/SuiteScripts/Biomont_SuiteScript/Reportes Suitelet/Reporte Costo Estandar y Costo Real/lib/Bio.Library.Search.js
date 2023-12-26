@@ -140,6 +140,8 @@ define(['./Bio.Library.Helper', 'N'],
                     "AND",
                     ["item.custitem3", "anyof", "2", "6", "1", "3", "10", "11", "9", "48", "4"],
                     "AND",
+                    ["memo", "isnot", "VOID"],
+                    "AND",
                     array_where_subsidiary
                 ],
             };
@@ -147,7 +149,7 @@ define(['./Bio.Library.Helper', 'N'],
             // Filtro de lotes
             if (Object.keys(dataOTByFecha).length <= 0) {
                 searchObject.filters.push('AND');
-                searchObject.filters.push(['custbodybio_cam_lote', 'is', '']);
+                searchObject.filters.push(['custbodybio_cam_lote', 'is', '']); // Esto es para que no traiga ninguna OT si no hay ningun Lote
             } else {
                 let array_where_lotes = getFilterLote(dataOTByFecha);
                 searchObject.filters.push('AND');
@@ -436,7 +438,7 @@ define(['./Bio.Library.Helper', 'N'],
             // Filtro de lotes
             if (Object.keys(dataOTByFecha).length <= 0) {
                 searchObject.filters.push('AND');
-                searchObject.filters.push(['custbodybio_cam_lote', 'is', '']);
+                searchObject.filters.push(['custbodybio_cam_lote', 'is', '']); // Esto es para que no traiga ninguna OT si no hay ningun Lote
             } else {
                 let array_where_lotes = getFilterLote(dataOTByFecha);
                 searchObject.filters.push('AND');
@@ -748,6 +750,7 @@ define(['./Bio.Library.Helper', 'N'],
         }
 
         function getDataConf_CentroCosto_Linea() {
+
             // Declarar variables
             let result = {};
             let data = [];

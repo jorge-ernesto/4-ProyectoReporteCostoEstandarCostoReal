@@ -4,6 +4,9 @@
 // - Registro:
 //      - Desglose Costo Estandar (customrecord_des_costo_estandar)
 
+// Notas:
+// - Este UserEventScript no esta desplegado, al final no se uso
+
 /**
  * @NApiVersion 2.1
  * @NScriptType UserEventScript
