@@ -762,6 +762,13 @@ define(['./Bio.Library.Helper', 'N'],
                     search.createColumn({ name: "internalid", label: "ID INTERNO" }),
                     search.createColumn({ name: "custrecord_bio_centro_costo", label: "Centro Costo" }),
                     search.createColumn({ name: "custrecord_bio_linea", label: "Linea" })
+                ],
+                filters: [
+                    search.createFilter({
+                        name: 'isinactive',
+                        operator: search.Operator.IS,
+                        values: 'F' // F para registros activos
+                    })
                 ]
             };
 
