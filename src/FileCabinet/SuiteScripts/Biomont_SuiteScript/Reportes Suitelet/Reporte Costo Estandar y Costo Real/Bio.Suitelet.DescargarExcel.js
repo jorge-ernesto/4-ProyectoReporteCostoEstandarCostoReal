@@ -10,7 +10,7 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
 
     function (objSearch, objProcess, objHelper, N) {
 
-        const { log, file, render, encode } = N;
+        const { log, file, render, encode, record } = N;
 
         /******************/
 
@@ -38,7 +38,7 @@ define(['./lib/Bio.Library.Search', './lib/Bio.Library.Process', './lib/Bio.Libr
             let titleDocument = 'Reporte de costo estandar por elementos del costo';
 
             // Crear Excel - Contenido dinamico
-            let xlsContent = file.load('./template/Excel/reporte_costo_estandar_costo_real.ftl').getContents();
+            let xlsContent = file.load('./template/Excel/excelreport_costo_estandar_costo_real.ftl').getContents();
             let renderer = render.create();
             renderer.templateContent = xlsContent;
 

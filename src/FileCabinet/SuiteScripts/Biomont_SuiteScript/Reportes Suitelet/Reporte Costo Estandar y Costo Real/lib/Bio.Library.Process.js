@@ -450,7 +450,7 @@ define(['./Bio.Library.Helper', 'N'],
                     let centro_costo_array = ['8', '9', '10', '11', '12', '32', '13'];
                     let centro_costo_nombre_array = ['PRODUCCIÓN : 2211 INYECTABLES', 'PRODUCCIÓN : 2221 SEMISOLIDOS', 'PRODUCCIÓN : 2231 LIQUIDOS', 'PRODUCCIÓN : 2241 SOLUCIONES TOPICAS', 'PRODUCCIÓN : 2251 SOLIDOS', 'PRODUCCIÓN : 2261 POLVOS', 'PRODUCCIÓN : 2271 ACONDICIONADO'];
 
-                    // Centros de costos: 2211, 2221, 2231, 2241, 2251, 2261, 2271
+                    // Centros de costo: 2211, 2221, 2231, 2241, 2251, 2261, 2271
                     if (centro_costo_array.includes(centro_costo) || centro_costo_nombre_array.includes(centro_costo_nombre)) {
 
                         // Eliminar todas las cuentas que comienzan con 62, excepto 62131113

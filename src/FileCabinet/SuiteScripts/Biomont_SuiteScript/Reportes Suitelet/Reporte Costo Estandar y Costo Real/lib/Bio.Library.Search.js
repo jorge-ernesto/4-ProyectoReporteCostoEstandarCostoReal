@@ -377,7 +377,7 @@ define(['./Bio.Library.Helper', 'N'],
                     search.createColumn({
                         name: "internalid",
                         summary: "GROUP",
-                        label: "ID Interno"
+                        label: "ID interno"
                     }),
                     search.createColumn({
                         name: "tranid",
@@ -461,7 +461,7 @@ define(['./Bio.Library.Helper', 'N'],
                 myPage.data.forEach((row) => {
                     // Obtener informacion
                     let { columns } = row;
-                    let orden_trabajo_id_interno = row.getValue(columns[0]); // ID Interno
+                    let orden_trabajo_id_interno = row.getValue(columns[0]); // ID interno
                     let orden_trabajo_numero = row.getValue(columns[1]); // Nro OT
                     // let lote = row.getValue(columns[2]); // Lote
                     let related_record_date = row.getValue(columns[3]); // Related Records : DATE
@@ -762,6 +762,13 @@ define(['./Bio.Library.Helper', 'N'],
                     search.createColumn({ name: "internalid", label: "ID INTERNO" }),
                     search.createColumn({ name: "custrecord_bio_centro_costo", label: "Centro Costo" }),
                     search.createColumn({ name: "custrecord_bio_linea", label: "Linea" })
+                ],
+                filters: [
+                    search.createFilter({
+                        name: 'isinactive',
+                        operator: search.Operator.IS,
+                        values: 'F' // F para registros activos
+                    })
                 ]
             };
 
@@ -912,7 +919,7 @@ define(['./Bio.Library.Helper', 'N'],
                     ["accountingperiod.periodname", "startswith", periodo], // Período contable a buscar
 
                     // Filtros que realiza el Area Contable
-                    // Centros de costos: 2211, 2221, 2231, 2241, 2251, 2261, 2271
+                    // Centros de costo: 2211, 2221, 2231, 2241, 2251, 2261, 2271
                     // Eliminar todas las cuentas que comienzan con 62, excepto 62131113
                     // Eliminar toda la cuenta 63311115
                     "AND",
